@@ -176,4 +176,31 @@ mod tests {
         assert!(entries[0].url.contains("sitemap-products"));
         assert!(entries[1].url.contains("sitemap-blog"));
     }
+
+    /// Fuzz test: sitemap parser must never panic on arbitrary input.
+    #[test]
+    fn test_fuzz_sitemap_parser() {
+        let fuzz_inputs = [
+            "",
+            "not xml at all",
+            "<",
+            "<url>",
+            "<url><loc>",
+            "<<<>>>",
+            "<urlset><url></url></urlset>",
+            "<urlset><url><loc></loc></url></urlset>",
+            "<urlset><url><loc>http://x</loc><priority>not-a-number</priority></url></urlset>",
+            "<urlset><url><loc>http://x</loc><lastmod>not-a-date</lastmod></url></urlset>",
+            &"<url>".repeat(10000),
+            "\x00\x01\x02\x03",
+            "<?xml version=\"1.0\"?><urlset></urlset>",
+            "<sitemapindex></sitemapindex>",
+            "<urlset><url><loc>http://x</loc></url><sitemap><loc>http://y</loc></sitemap></urlset>",
+        ];
+
+        for input in &fuzz_inputs {
+            // Must not panic — returning Err or empty Vec is fine
+            let _ = parse_sitemap(input);
+        }
+    }
 }

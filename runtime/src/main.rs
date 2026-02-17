@@ -4,7 +4,8 @@
 #![allow(dead_code, unused_imports)]
 
 use anyhow::Result;
-use clap::{Parser, Subcommand};
+use clap::{CommandFactory, Parser, Subcommand};
+use clap_complete::Shell;
 
 mod audit;
 mod cartography;
@@ -128,6 +129,11 @@ enum Commands {
         #[command(subcommand)]
         action: CacheAction,
     },
+    /// Generate shell completion scripts
+    Completions {
+        /// Shell type (bash, zsh, fish, powershell)
+        shell: Shell,
+    },
 }
 
 #[derive(Subcommand)]
@@ -198,6 +204,11 @@ async fn main() -> Result<()> {
                 cli::cache_cmd::run_clear(domain.as_deref()).await
             }
         },
+        Commands::Completions { shell } => {
+            let mut cmd = Cli::command();
+            clap_complete::generate(shell, &mut cmd, "cortex", &mut std::io::stdout());
+            Ok(())
+        }
     };
 
     // Consistent exit codes: 0=success, 1=error

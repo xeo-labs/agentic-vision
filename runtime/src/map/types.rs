@@ -757,4 +757,35 @@ mod tests {
         // Node 2 should be closest (same feature emphasis)
         assert_eq!(results[0].index, 2);
     }
+
+    #[test]
+    fn test_checksum_integrity() {
+        let mut builder = SiteMapBuilder::new("test.com");
+        let feats = [0.0f32; FEATURE_DIM];
+        builder.add_node("https://test.com/", PageType::Home, feats, 255);
+        let map = builder.build();
+
+        let data = map.serialize();
+        // Round-trip works
+        SiteMap::deserialize(&data).expect("valid data should deserialize");
+
+        // Corrupt one byte in the middle
+        let mut corrupted = data.clone();
+        corrupted[data.len() / 2] ^= 0xFF;
+        let err = SiteMap::deserialize(&corrupted);
+        assert!(err.is_err(), "corrupted data should fail checksum");
+        let msg = format!("{}", err.unwrap_err());
+        assert!(
+            msg.contains("checksum mismatch"),
+            "error should mention checksum: {msg}"
+        );
+    }
+
+    #[test]
+    fn test_truncated_map_file() {
+        // Too short to even have a checksum
+        assert!(SiteMap::deserialize(&[]).is_err());
+        assert!(SiteMap::deserialize(&[0x01]).is_err());
+        assert!(SiteMap::deserialize(&[0x01, 0x02, 0x03]).is_err());
+    }
 }

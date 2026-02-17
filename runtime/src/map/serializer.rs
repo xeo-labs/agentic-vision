@@ -1,14 +1,54 @@
 //! Serialize a SiteMap to the binary CTX format.
+//!
+//! The format ends with a 4-byte CRC32 checksum (IEEE) of all preceding bytes,
+//! allowing integrity verification on load.
 
 use crate::map::types::*;
 use byteorder::{LittleEndian, WriteBytesExt};
 use std::io::Write;
 
+/// Compute CRC32 (IEEE/ISO 3309) checksum of data.
+pub(crate) fn crc32(data: &[u8]) -> u32 {
+    let mut crc: u32 = 0xFFFF_FFFF;
+    for &byte in data {
+        let index = ((crc ^ byte as u32) & 0xFF) as usize;
+        crc = CRC32_TABLE[index] ^ (crc >> 8);
+    }
+    crc ^ 0xFFFF_FFFF
+}
+
+/// CRC32 lookup table (IEEE polynomial 0xEDB88320).
+const CRC32_TABLE: [u32; 256] = {
+    let mut table = [0u32; 256];
+    let mut i = 0;
+    while i < 256 {
+        let mut crc = i as u32;
+        let mut j = 0;
+        while j < 8 {
+            if crc & 1 != 0 {
+                crc = 0xEDB8_8320 ^ (crc >> 1);
+            } else {
+                crc >>= 1;
+            }
+            j += 1;
+        }
+        table[i] = crc;
+        i += 1;
+    }
+    table
+};
+
 impl SiteMap {
-    /// Serialize the SiteMap to binary CTX format.
+    /// Serialize the SiteMap to binary CTX format with trailing CRC32 checksum.
     pub fn serialize(&self) -> Vec<u8> {
         let mut buf = Vec::new();
         self.write_to(&mut buf).expect("serialization to Vec should not fail");
+
+        // Append CRC32 checksum of all preceding bytes
+        let checksum = crc32(&buf);
+        buf.write_u32::<LittleEndian>(checksum)
+            .expect("checksum write to Vec should not fail");
+
         buf
     }
 

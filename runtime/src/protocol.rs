@@ -158,4 +158,36 @@ mod tests {
         assert_eq!(parsed["id"], "r2");
         assert_eq!(parsed["error"]["code"], "E_INVALID_METHOD");
     }
+
+    /// Fuzz test: protocol parser must never panic on arbitrary input.
+    #[test]
+    fn test_fuzz_protocol_parser() {
+        let fuzz_inputs = [
+            "",
+            "   ",
+            "null",
+            "42",
+            "[]",
+            "true",
+            "\"just a string\"",
+            "{}",
+            "{\"id\": 123}",
+            "{\"method\": null}",
+            "{\"id\": \"x\", \"method\": 42}",
+            "{\"id\": \"x\", \"method\": \"\"}",
+            "{\"id\": \"x\", \"method\": \"handshake\"}",  // missing params (ok)
+            "{\"id\": null, \"method\": \"status\"}",
+            "{{{{",
+            "\x00\x01\x02\x03",
+            "{\"id\": \"x\", \"method\": \"map\", \"params\": \"not-an-object\"}",
+            &"a".repeat(100_000), // very long input
+            "{\"id\": \"\", \"method\": \"handshake\", \"params\": {}}",
+            "}\n{",
+        ];
+
+        for input in &fuzz_inputs {
+            // Must not panic — returning Err is fine
+            let _ = parse_request(input);
+        }
+    }
 }

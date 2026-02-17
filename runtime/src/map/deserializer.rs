@@ -1,5 +1,8 @@
 //! Deserialize a SiteMap from the binary CTX format.
+//!
+//! Verifies the trailing CRC32 checksum to detect corruption.
 
+use crate::map::serializer::crc32;
 use crate::map::types::*;
 use anyhow::{bail, Context, Result};
 use byteorder::{LittleEndian, ReadBytesExt};
@@ -7,8 +10,30 @@ use std::io::Cursor;
 
 impl SiteMap {
     /// Deserialize a SiteMap from binary CTX format.
+    ///
+    /// Verifies the trailing CRC32 checksum. Returns an error if the
+    /// file is truncated or corrupted.
     pub fn deserialize(data: &[u8]) -> Result<Self> {
-        let mut r = Cursor::new(data);
+        // Verify trailing CRC32 checksum (last 4 bytes)
+        if data.len() < 4 {
+            bail!("map file too small: {} bytes", data.len());
+        }
+        let payload = &data[..data.len() - 4];
+        let stored_checksum = {
+            let mut c = Cursor::new(&data[data.len() - 4..]);
+            c.read_u32::<LittleEndian>().context("reading checksum")?
+        };
+        let computed_checksum = crc32(payload);
+        if stored_checksum != computed_checksum {
+            bail!(
+                "map file integrity check failed: checksum mismatch \
+                 (stored 0x{:08X}, computed 0x{:08X}). File may be corrupted.",
+                stored_checksum,
+                computed_checksum
+            );
+        }
+
+        let mut r = Cursor::new(payload);
 
         // ─── Header ───────────────────────────────────────
         let magic = r.read_u32::<LittleEndian>().context("reading magic")?;
