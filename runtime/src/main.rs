@@ -9,6 +9,7 @@ use clap::{Parser, Subcommand};
 mod cartography;
 mod cli;
 mod extraction;
+mod intelligence;
 mod live;
 mod map;
 mod navigation;
