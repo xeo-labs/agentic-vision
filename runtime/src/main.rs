@@ -6,7 +6,9 @@
 use anyhow::Result;
 use clap::{Parser, Subcommand};
 
+mod cartography;
 mod cli;
+mod extraction;
 mod map;
 mod protocol;
 mod renderer;
