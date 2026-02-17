@@ -16,18 +16,84 @@ export interface CortexResponse {
   error?: { code?: string; message?: string };
 }
 
-export class CortexConnectionError extends Error {
-  constructor(message: string) {
+/**
+ * Base error for all Cortex client errors.
+ * All errors include a `code` attribute for programmatic handling.
+ */
+export class CortexError extends Error {
+  readonly code: string;
+  constructor(message: string, code = "E_UNKNOWN") {
     super(message);
+    this.name = "CortexError";
+    this.code = code;
+  }
+}
+
+export class CortexConnectionError extends CortexError {
+  constructor(message: string, code = "E_CONNECTION") {
+    super(message, code);
     this.name = "CortexConnectionError";
   }
 }
 
-export class CortexTimeoutError extends Error {
-  constructor(message: string) {
-    super(message);
+export class CortexTimeoutError extends CortexError {
+  constructor(message: string, code = "E_TIMEOUT") {
+    super(message, code);
     this.name = "CortexTimeoutError";
   }
+}
+
+export class CortexMapError extends CortexError {
+  constructor(message: string, code = "E_MAP_FAILED") {
+    super(message, code);
+    this.name = "CortexMapError";
+  }
+}
+
+export class CortexPathError extends CortexError {
+  constructor(message: string, code = "E_PATH_FAILED") {
+    super(message, code);
+    this.name = "CortexPathError";
+  }
+}
+
+export class CortexActError extends CortexError {
+  constructor(message: string, code = "E_ACT_FAILED") {
+    super(message, code);
+    this.name = "CortexActError";
+  }
+}
+
+/** Feature vector dimension count. */
+export const FEATURE_DIM = 128;
+
+/**
+ * Normalize a domain input by stripping protocol, path, and trailing slashes.
+ */
+export function normalizeDomain(domain: string): string {
+  let d = domain.trim();
+  if (!d) throw new Error("domain cannot be empty");
+
+  // Strip protocol
+  if (d.includes("://")) {
+    try {
+      const url = new URL(d);
+      d = url.host;
+    } catch {
+      d = d.split("://")[1]?.split("/")[0] ?? d;
+    }
+  } else if (d.startsWith("//")) {
+    d = d.slice(2).split("/")[0];
+  } else {
+    d = d.split("/")[0];
+  }
+
+  // Strip trailing dots
+  d = d.replace(/\.+$/, "");
+
+  if (!d) throw new Error(`domain cannot be empty (input was "${domain}")`);
+
+  return d;
 }
 
 export class Connection {
@@ -58,21 +124,39 @@ export class Connection {
         if (err.code === "ENOENT") {
           reject(
             new CortexConnectionError(
-              `Cortex is not running (socket not found: ${this.socketPath})`
+              `Cannot connect to Cortex at ${this.socketPath}. ` +
+                "The process may not be running. Start it with: cortex start",
+              "E_SOCKET_NOT_FOUND"
             )
           );
         } else if (err.code === "ECONNREFUSED") {
           reject(
             new CortexConnectionError(
-              `Cortex refused connection at ${this.socketPath}`
+              `Cortex refused connection at ${this.socketPath}. ` +
+                "The process may have crashed. Try 'cortex stop && cortex start'.",
+              "E_CONNECTION_REFUSED"
+            )
+          );
+        } else if (err.code === "EACCES") {
+          reject(
+            new CortexConnectionError(
+              `Permission denied on ${this.socketPath}. ` +
+                "Check file permissions or run 'cortex stop && cortex start'.",
+              "E_PERMISSION_DENIED"
             )
           );
         } else {
-          reject(new CortexConnectionError(`Cannot connect to Cortex: ${err.message}`));
+          reject(
+            new CortexConnectionError(`Cannot connect to Cortex: ${err.message}`)
+          );
         }
       });
       this.socket.on("timeout", () => {
-        reject(new CortexTimeoutError("Connection timed out"));
+        reject(
+          new CortexTimeoutError(
+            "Connection timed out. The Cortex daemon may be overloaded."
+          )
+        );
       });
     });
   }
@@ -114,7 +198,11 @@ export class Connection {
 
       const timeoutId = setTimeout(() => {
         cleanup();
-        reject(new CortexTimeoutError(`Timeout sending ${method} request`));
+        reject(
+          new CortexTimeoutError(
+            `Timeout sending ${method} request after ${this.timeout}ms.`
+          )
+        );
       }, this.timeout);
 
       const onData = (chunk: Buffer): void => {
@@ -127,19 +215,35 @@ export class Connection {
           try {
             resolve(JSON.parse(line) as CortexResponse);
           } catch {
-            reject(new CortexConnectionError("Invalid JSON response"));
+            reject(
+              new CortexConnectionError(
+                "Invalid JSON response from Cortex daemon.",
+                "E_INVALID_JSON"
+              )
+            );
           }
         }
       };
 
       const onError = (err: Error): void => {
         cleanup();
-        reject(new CortexConnectionError(`Connection error: ${err.message}`));
+        reject(
+          new CortexConnectionError(
+            `Connection error: ${err.message}. ` +
+              "The Cortex daemon may have crashed."
+          )
+        );
       };
 
       const onClose = (): void => {
         cleanup();
-        reject(new CortexConnectionError("Connection closed by server"));
+        reject(
+          new CortexConnectionError(
+            "Connection closed by Cortex daemon. " +
+              "Check 'cortex doctor' for diagnostics.",
+            "E_CONNECTION_CLOSED"
+          )
+        );
       };
 
       const cleanup = (): void => {
@@ -156,7 +260,12 @@ export class Connection {
       sock.write(request, (err) => {
         if (err) {
           cleanup();
-          reject(new CortexConnectionError(`Write error: ${err.message}`));
+          reject(
+            new CortexConnectionError(
+              `Write error: ${err.message}`,
+              "E_WRITE_FAILED"
+            )
+          );
         }
       });
     });

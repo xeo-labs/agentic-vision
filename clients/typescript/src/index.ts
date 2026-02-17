@@ -7,17 +7,21 @@
 
 export {
   Connection,
+  CortexError,
   CortexConnectionError,
   CortexTimeoutError,
+  CortexMapError,
+  CortexPathError,
+  CortexActError,
+  FEATURE_DIM,
+  normalizeDomain,
   DEFAULT_SOCKET_PATH,
   DEFAULT_TIMEOUT,
 } from "./connection";
 
 export type { CortexResponse } from "./connection";
 
-export {
-  SiteMapClient,
-} from "./sitemap";
+export { SiteMapClient } from "./sitemap";
 
 export type {
   NodeMatch,

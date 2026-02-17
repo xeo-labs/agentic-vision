@@ -305,3 +305,157 @@ class TestSiteMapMethods:
         result = sm.act(5, (2, 0))
         assert result.success is True
         assert result.new_url == "https://example.com/cart"
+
+    def test_nearest_wrong_dimension(self) -> None:
+        sm = self._make_sitemap()
+        with pytest.raises(ValueError, match="128 dimensions, got 64"):
+            sm.nearest([0.0] * 64, k=5)
+
+    def test_nearest_zero_vector(self) -> None:
+        sm = self._make_sitemap()
+        sm._conn.send.return_value = {"result": {"matches": []}}
+        result = sm.nearest([0.0] * 128, k=5)
+        assert result == []
+
+    def test_sitemap_repr(self) -> None:
+        sm = self._make_sitemap()
+        r = repr(sm)
+        assert "example.com" in r
+        assert "100" in r
+        assert "250" in r
+
+
+# ---------------------------------------------------------------------------
+# Domain normalization tests
+# ---------------------------------------------------------------------------
+
+
+class TestNormalizeDomain:
+    def test_plain_domain(self) -> None:
+        from cortex_client import normalize_domain
+
+        assert normalize_domain("example.com") == "example.com"
+
+    def test_strip_https(self) -> None:
+        from cortex_client import normalize_domain
+
+        assert normalize_domain("https://example.com") == "example.com"
+
+    def test_strip_http(self) -> None:
+        from cortex_client import normalize_domain
+
+        assert normalize_domain("http://example.com") == "example.com"
+
+    def test_strip_path(self) -> None:
+        from cortex_client import normalize_domain
+
+        assert normalize_domain("https://amazon.com/dp/B0EXAMPLE") == "amazon.com"
+
+    def test_strip_trailing_slash(self) -> None:
+        from cortex_client import normalize_domain
+
+        assert normalize_domain("example.com/") == "example.com"
+
+    def test_preserve_port(self) -> None:
+        from cortex_client import normalize_domain
+
+        assert normalize_domain("localhost:3000") == "localhost:3000"
+
+    def test_empty_domain_raises(self) -> None:
+        from cortex_client import normalize_domain
+
+        with pytest.raises(ValueError, match="cannot be empty"):
+            normalize_domain("")
+
+    def test_whitespace_only_raises(self) -> None:
+        from cortex_client import normalize_domain
+
+        with pytest.raises(ValueError, match="cannot be empty"):
+            normalize_domain("   ")
+
+
+# ---------------------------------------------------------------------------
+# Error .code attribute tests
+# ---------------------------------------------------------------------------
+
+
+class TestErrorCodes:
+    def test_cortex_error_has_code(self) -> None:
+        from cortex_client.errors import CortexError
+
+        e = CortexError("test", code="E_TEST")
+        assert e.code == "E_TEST"
+        assert e.message == "test"
+
+    def test_connection_error_code(self) -> None:
+        from cortex_client.errors import CortexConnectionError
+
+        e = CortexConnectionError("fail")
+        assert e.code == "E_CONNECTION"
+
+    def test_timeout_error_code(self) -> None:
+        from cortex_client.errors import CortexTimeoutError
+
+        e = CortexTimeoutError("slow")
+        assert e.code == "E_TIMEOUT"
+
+    def test_error_repr(self) -> None:
+        from cortex_client.errors import CortexError
+
+        e = CortexError("test msg", code="E_TEST")
+        r = repr(e)
+        assert "E_TEST" in r
+        assert "test msg" in r
+
+
+# ---------------------------------------------------------------------------
+# __repr__ tests
+# ---------------------------------------------------------------------------
+
+
+class TestRepr:
+    def test_node_match_repr(self) -> None:
+        nm = NodeMatch(
+            index=42,
+            url="https://example.com/product/123",
+            page_type=0x04,
+            confidence=0.95,
+        )
+        r = repr(nm)
+        assert "42" in r
+        assert "product_detail" in r
+        assert "0.95" in r
+
+    def test_path_repr(self) -> None:
+        p = Path(
+            nodes=[0, 3, 7],
+            total_weight=2.5,
+            hops=2,
+            required_actions=[],
+        )
+        r = repr(p)
+        assert "hops=2" in r
+        assert "2.5" in r
+
+    def test_runtime_status_repr(self) -> None:
+        s = RuntimeStatus(
+            version="0.1.0",
+            uptime_seconds=3600.0,
+            active_contexts=2,
+            cached_maps=3,
+            memory_mb=340.0,
+        )
+        r = repr(s)
+        assert "0.1.0" in r
+        assert "3600" in r
+
+    def test_page_result_repr(self) -> None:
+        pr = PageResult(
+            url="https://example.com",
+            final_url="https://example.com",
+            page_type=0x01,
+            confidence=0.92,
+        )
+        r = repr(pr)
+        assert "home" in r
+        assert "0.92" in r

@@ -3,9 +3,22 @@
 
 /**
  * SiteMap types and query interface.
+ *
+ * @example
+ * ```typescript
+ * const site = await map("amazon.com");
+ * const products = await site.filter({ pageType: 0x04, limit: 5 });
+ * const path = await site.pathfind(0, products[0].index);
+ * ```
  */
 
-import { Connection, CortexResponse } from "./connection";
+import {
+  Connection,
+  CortexActError,
+  CortexPathError,
+  CortexResponse,
+  FEATURE_DIM,
+} from "./connection";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -105,6 +118,11 @@ function parseNodeMatches(resp: CortexResponse): NodeMatch[] {
 // SiteMapClient
 // ---------------------------------------------------------------------------
 
+/**
+ * Navigable binary site map client.
+ *
+ * Wraps protocol responses to provide a convenient query interface.
+ */
 export class SiteMapClient {
   private conn: Connection;
   readonly domain: string;
@@ -126,8 +144,14 @@ export class SiteMapClient {
     this.mapPath = mapPath;
   }
 
+  toString(): string {
+    return `SiteMap(domain='${this.domain}', nodes=${this.nodeCount}, edges=${this.edgeCount})`;
+  }
+
   /**
    * Filter nodes by type, features, and flags.
+   *
+   * @returns Array of matching nodes (empty if no matches, never null).
    */
   async filter(query: NodeQuery = {}): Promise<NodeMatch[]> {
     const params = buildQueryParams(this.domain, query);
@@ -136,9 +160,18 @@ export class SiteMapClient {
   }
 
   /**
-   * Find k nearest nodes by feature similarity.
+   * Find k nearest nodes by cosine similarity to a goal vector.
+   *
+   * @param goalVector - A 128-dimension feature vector to compare against.
+   * @param k - Number of nearest neighbors to return.
+   * @throws Error if goalVector is not exactly 128 dimensions.
    */
   async nearest(goalVector: number[], k = 10): Promise<NodeMatch[]> {
+    if (goalVector.length !== FEATURE_DIM) {
+      throw new Error(
+        `Goal vector must be ${FEATURE_DIM} dimensions, got ${goalVector.length}`
+      );
+    }
     const params = buildQueryParams(this.domain, { limit: k });
     params.goal_vector = goalVector;
     params.mode = "nearest";
@@ -147,7 +180,9 @@ export class SiteMapClient {
   }
 
   /**
-   * Find shortest path between nodes.
+   * Find shortest path between two nodes.
+   *
+   * @returns Path object, or null if no path exists.
    */
   async pathfind(
     fromNode: number,
@@ -166,7 +201,10 @@ export class SiteMapClient {
 
     if (resp.error) {
       if (resp.error.code === "E_NO_PATH") return null;
-      throw new Error(resp.error.message ?? "pathfind error");
+      throw new CortexPathError(
+        resp.error.message ?? "pathfind error",
+        resp.error.code ?? "E_PATH_FAILED"
+      );
     }
 
     const result = (resp.result ?? {}) as Record<string, unknown>;
@@ -188,11 +226,13 @@ export class SiteMapClient {
   /**
    * Re-render specific nodes and update the map.
    */
-  async refresh(options: {
-    nodes?: number[];
-    cluster?: number;
-    staleThreshold?: number;
-  } = {}): Promise<RefreshResult> {
+  async refresh(
+    options: {
+      nodes?: number[];
+      cluster?: number;
+      staleThreshold?: number;
+    } = {}
+  ): Promise<RefreshResult> {
     const params: Record<string, unknown> = { domain: this.domain };
     if (options.nodes !== undefined) params.nodes = options.nodes;
     if (options.cluster !== undefined) params.cluster = options.cluster;
@@ -209,6 +249,8 @@ export class SiteMapClient {
 
   /**
    * Execute an action on a live page.
+   *
+   * @throws CortexActError if the action fails.
    */
   async act(
     node: number,
@@ -225,6 +267,13 @@ export class SiteMapClient {
     if (sessionId) reqParams.session_id = sessionId;
 
     const resp = await this.conn.send("act", reqParams);
+    if (resp.error) {
+      throw new CortexActError(
+        resp.error.message ?? "action failed",
+        resp.error.code ?? "E_ACT_FAILED"
+      );
+    }
+
     const result = (resp.result ?? {}) as Record<string, unknown>;
     return {
       success: (result.success as boolean) ?? false,

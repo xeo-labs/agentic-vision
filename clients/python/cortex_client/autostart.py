@@ -21,6 +21,7 @@ def ensure_running(
     """Ensure the Cortex runtime is running.
 
     If the runtime is not reachable, attempt to start it automatically.
+    If the binary is not found, raises with a clear install message.
 
     Args:
         socket_path: Path to the Unix socket.
@@ -36,7 +37,10 @@ def ensure_running(
     binary = _find_binary()
     if binary is None:
         raise CortexConnectionError(
-            "Cortex binary not found. Install it or add it to PATH."
+            "Could not find 'cortex' binary. "
+            "Install Cortex: cargo install cortex-runtime, "
+            "or add the cortex binary to your PATH.",
+            code="E_BINARY_NOT_FOUND",
         )
 
     # Start the daemon
@@ -47,7 +51,10 @@ def ensure_running(
             stderr=subprocess.DEVNULL,
         )
     except OSError as e:
-        raise CortexConnectionError(f"Failed to start Cortex: {e}")
+        raise CortexConnectionError(
+            f"Failed to start Cortex: {e}. Try starting manually: {binary} start",
+            code="E_START_FAILED",
+        )
 
     # Wait for socket to become responsive
     deadline = time.monotonic() + timeout
@@ -56,7 +63,11 @@ def ensure_running(
             return
         time.sleep(0.5)
 
-    raise CortexConnectionError(f"Cortex did not start within {timeout:.0f}s")
+    raise CortexConnectionError(
+        f"Cortex did not start within {timeout:.0f}s. "
+        "Check 'cortex doctor' for diagnostics.",
+        code="E_START_TIMEOUT",
+    )
 
 
 def _is_responsive(socket_path: str) -> bool:
@@ -68,7 +79,6 @@ def _is_responsive(socket_path: str) -> bool:
         with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as sock:
             sock.settimeout(2.0)
             sock.connect(socket_path)
-            # Send handshake
             import json
 
             request = (
@@ -82,7 +92,6 @@ def _is_responsive(socket_path: str) -> bool:
                 + b"\n"
             )
             sock.sendall(request)
-            # Read response
             data = sock.recv(4096)
             if data:
                 resp = json.loads(data.decode("utf-8").strip())
@@ -94,7 +103,6 @@ def _is_responsive(socket_path: str) -> bool:
 
 def _find_binary() -> str | None:
     """Find the cortex binary."""
-    # Check common locations
     candidates = [
         shutil.which("cortex"),
         os.path.expanduser("~/.cortex/bin/cortex"),
