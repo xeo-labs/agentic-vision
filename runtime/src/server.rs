@@ -1,7 +1,7 @@
 //! Unix domain socket server for the Cortex protocol.
 //!
 //! Handles connection lifecycle, inactivity timeouts, malformed JSON,
-//! and concurrent request management.
+//! rate limiting, and concurrent request management.
 
 use crate::protocol::{self, Method};
 use anyhow::{Context, Result};
@@ -19,6 +19,9 @@ const INACTIVITY_TIMEOUT: Duration = Duration::from_secs(30);
 
 /// Maximum request line size (10 MB).
 const MAX_REQUEST_SIZE: usize = 10 * 1024 * 1024;
+
+/// Maximum requests per second per connection.
+const MAX_REQUESTS_PER_SEC: u32 = 10;
 
 /// The Cortex socket server.
 pub struct Server {
@@ -94,7 +97,7 @@ impl Server {
     }
 }
 
-/// Handle a single client connection with inactivity timeout.
+/// Handle a single client connection with inactivity timeout and rate limiting.
 async fn handle_connection(
     stream: tokio::net::UnixStream,
     uptime_s: u64,
@@ -103,6 +106,10 @@ async fn handle_connection(
     let (reader, mut writer) = stream.into_split();
     let mut reader = BufReader::new(reader);
     let mut line = String::new();
+
+    // Rate limiting: track requests per second
+    let mut rate_window_start = Instant::now();
+    let mut rate_count: u32 = 0;
 
     loop {
         line.clear();
@@ -134,6 +141,27 @@ async fn handle_connection(
 
                 let trimmed = line.trim();
                 if trimmed.is_empty() {
+                    continue;
+                }
+
+                // Rate limiting: max N requests per second per connection
+                let elapsed = rate_window_start.elapsed();
+                if elapsed >= Duration::from_secs(1) {
+                    rate_window_start = Instant::now();
+                    rate_count = 0;
+                }
+                rate_count += 1;
+                if rate_count > MAX_REQUESTS_PER_SEC {
+                    let resp = protocol::format_error(
+                        "unknown",
+                        "E_RATE_LIMITED",
+                        &format!(
+                            "Rate limit exceeded: max {} requests/second",
+                            MAX_REQUESTS_PER_SEC
+                        ),
+                    );
+                    writer.write_all(resp.as_bytes()).await.ok();
+                    writer.flush().await.ok();
                     continue;
                 }
 

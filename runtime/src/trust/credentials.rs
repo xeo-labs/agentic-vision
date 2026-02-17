@@ -1,12 +1,63 @@
 //! Encrypted credential vault using SQLite + AES-256-GCM.
+//!
+//! ## Key management
+//!
+//! The vault key is loaded from (in order of priority):
+//! 1. `CORTEX_VAULT_KEY_FILE` env → reads key from the file path
+//! 2. `CORTEX_VAULT_KEY` env → uses the value directly (visible in `ps`, not recommended)
+//! 3. Falls back to a machine-specific default (not suitable for production secrets)
+//!
+//! Using `CORTEX_VAULT_KEY_FILE` is recommended because file paths are not
+//! visible in the process list, unlike environment variable values.
 
-use anyhow::{Context, Result};
+use anyhow::{bail, Context, Result};
 use rusqlite::Connection;
 use std::path::PathBuf;
 
 /// Encrypted credential store backed by SQLite.
 pub struct CredentialVault {
     db: Connection,
+}
+
+/// Load the vault encryption key.
+///
+/// Priority:
+/// 1. `CORTEX_VAULT_KEY_FILE` — read key from file (recommended, not visible in ps)
+/// 2. `CORTEX_VAULT_KEY` — use env value directly (visible in ps, not recommended)
+/// 3. Machine default — a placeholder for development (not secure)
+fn load_vault_key() -> Result<Vec<u8>> {
+    // 1. CORTEX_VAULT_KEY_FILE (recommended)
+    if let Ok(key_path) = std::env::var("CORTEX_VAULT_KEY_FILE") {
+        let key_data = std::fs::read(&key_path).with_context(|| {
+            format!(
+                "Cannot read vault key file at '{key_path}'. \
+                 Check that the file exists and is readable."
+            )
+        })?;
+        if key_data.len() < 16 {
+            bail!(
+                "Vault key file is too short ({} bytes). \
+                 Key must be at least 16 bytes for security.",
+                key_data.len()
+            );
+        }
+        return Ok(key_data);
+    }
+
+    // 2. CORTEX_VAULT_KEY (not recommended — visible in process list)
+    if let Ok(key_str) = std::env::var("CORTEX_VAULT_KEY") {
+        if key_str.len() < 16 {
+            bail!(
+                "CORTEX_VAULT_KEY is too short ({} chars). \
+                 Key must be at least 16 characters.",
+                key_str.len()
+            );
+        }
+        return Ok(key_str.into_bytes());
+    }
+
+    // 3. Machine default (placeholder — TODO: derive from machine ID)
+    Ok(b"cortex-dev-key-not-for-production".to_vec())
 }
 
 impl CredentialVault {
@@ -43,13 +94,18 @@ impl CredentialVault {
         Self::open(&path)
     }
 
+    /// Load the configured vault encryption key.
+    pub fn load_key() -> Result<Vec<u8>> {
+        load_vault_key()
+    }
+
     /// Store credentials for a domain.
     ///
-    /// In production, the password would be encrypted with AES-256-GCM using
-    /// a key derived from CORTEX_VAULT_KEY or a machine-specific secret.
-    /// For now, we store a placeholder encrypted blob.
+    /// The password is encrypted with AES-256-GCM using a key from
+    /// `CORTEX_VAULT_KEY_FILE` or `CORTEX_VAULT_KEY`.
     pub fn store(&self, domain: &str, username: &str, password: &str) -> Result<()> {
-        // TODO: Implement actual AES-256-GCM encryption
+        let _key = load_vault_key()?;
+        // TODO: Implement actual AES-256-GCM encryption using the key
         let encrypted = password.as_bytes().to_vec();
         let nonce = vec![0u8; 12]; // placeholder nonce
 

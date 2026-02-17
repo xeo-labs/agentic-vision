@@ -65,6 +65,13 @@ pub async fn execute_action(
 }
 
 /// Build a JavaScript snippet to execute the given opcode action.
+///
+/// ## Security: HTML/JS encoding
+///
+/// All user-provided values (selectors, form values) are sanitized before
+/// injection into JS strings to prevent XSS and JS injection. Values are:
+/// - Escaped for JS string context (backslash, quotes, newlines)
+/// - Injected only into string literals, never into code positions
 fn build_action_script(
     opcode: &OpCode,
     params: &std::collections::HashMap<String, serde_json::Value>,
@@ -82,7 +89,7 @@ fn build_action_script(
                     if (el) {{ el.click(); return {{ success: true }}; }}
                     return {{ success: false }};
                 }})()"#,
-                selector.replace('\'', "\\'")
+                sanitize_js_string(selector)
             )
         }
         // Commerce: add to cart
@@ -107,7 +114,7 @@ fn build_action_script(
                     if (form) {{ form.submit(); return {{ success: true }}; }}
                     return {{ success: false }};
                 }})()"#,
-                form_selector.replace('\'', "\\'")
+                sanitize_js_string(form_selector)
             )
         }
         // Auth: login click
@@ -138,8 +145,8 @@ fn build_action_script(
                     }}
                     return {{ success: false }};
                 }})()"#,
-                selector.replace('\'', "\\'"),
-                value.replace('\'', "\\'")
+                sanitize_js_string(selector),
+                sanitize_js_string(value)
             )
         }
         // Default: try to click based on label
@@ -147,5 +154,65 @@ fn build_action_script(
             r#"(() => { return { success: false, reason: "unsupported opcode" }; })()"#
                 .to_string()
         }
+    }
+}
+
+/// Sanitize a string for safe injection into a JavaScript string literal.
+///
+/// Escapes all characters that could break out of a JS string context:
+/// - Backslashes, single/double quotes, backticks
+/// - Newlines, carriage returns, tabs
+/// - HTML script tags (to prevent XSS if value is reflected in HTML)
+/// - Null bytes
+fn sanitize_js_string(s: &str) -> String {
+    let mut result = String::with_capacity(s.len() + 8);
+    for ch in s.chars() {
+        match ch {
+            '\\' => result.push_str("\\\\"),
+            '\'' => result.push_str("\\'"),
+            '"' => result.push_str("\\\""),
+            '`' => result.push_str("\\`"),
+            '\n' => result.push_str("\\n"),
+            '\r' => result.push_str("\\r"),
+            '\t' => result.push_str("\\t"),
+            '\0' => {} // Strip null bytes
+            '<' => result.push_str("\\x3c"), // Prevent </script> injection
+            '>' => result.push_str("\\x3e"),
+            _ => result.push(ch),
+        }
+    }
+    result
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_sanitize_basic() {
+        assert_eq!(sanitize_js_string("hello"), "hello");
+        assert_eq!(sanitize_js_string("it's"), "it\\'s");
+        assert_eq!(sanitize_js_string("a\"b"), "a\\\"b");
+    }
+
+    #[test]
+    fn test_sanitize_xss() {
+        let malicious = r#"</script><script>alert(1)</script>"#;
+        let sanitized = sanitize_js_string(malicious);
+        assert!(!sanitized.contains("</script>"));
+        assert!(sanitized.contains("\\x3c/script\\x3e"));
+    }
+
+    #[test]
+    fn test_sanitize_injection() {
+        let injection = "'; DROP TABLE users; --";
+        let sanitized = sanitize_js_string(injection);
+        assert!(sanitized.starts_with("\\'"));
+    }
+
+    #[test]
+    fn test_sanitize_null_bytes() {
+        let with_null = "abc\0def";
+        assert_eq!(sanitize_js_string(with_null), "abcdef");
     }
 }

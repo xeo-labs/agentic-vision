@@ -1,4 +1,9 @@
 //! JSONL audit logger — append-only log of all operations.
+//!
+//! Features:
+//! - Append-only JSONL format for easy parsing
+//! - Automatic log rotation when file exceeds `MAX_LOG_SIZE` (100MB)
+//! - Rotated files named `.1`, `.2`, etc. (max 5 rotations)
 
 use anyhow::{Context, Result};
 use chrono::Utc;
@@ -6,6 +11,12 @@ use serde::Serialize;
 use std::fs::{File, OpenOptions};
 use std::io::Write;
 use std::path::PathBuf;
+
+/// Maximum audit log size before rotation (100 MB).
+const MAX_LOG_SIZE: u64 = 100 * 1024 * 1024;
+
+/// Maximum number of rotated log files to keep.
+const MAX_ROTATIONS: u32 = 5;
 
 /// A single audit event.
 #[derive(Debug, Clone, Serialize)]
@@ -19,9 +30,12 @@ pub struct AuditEvent {
     pub status: String,
 }
 
-/// Append-only JSONL audit logger.
+/// Append-only JSONL audit logger with automatic rotation.
 pub struct AuditLogger {
     file: File,
+    path: PathBuf,
+    /// Approximate current size (may drift slightly; re-checked on rotation).
+    current_size: u64,
 }
 
 impl AuditLogger {
@@ -37,7 +51,13 @@ impl AuditLogger {
             .open(path)
             .with_context(|| format!("failed to open audit log: {}", path.display()))?;
 
-        Ok(Self { file })
+        let current_size = file.metadata().map(|m| m.len()).unwrap_or(0);
+
+        Ok(Self {
+            file,
+            path: path.clone(),
+            current_size,
+        })
     }
 
     /// Open the default audit log at ~/.cortex/audit.jsonl.
@@ -51,8 +71,16 @@ impl AuditLogger {
 
     /// Log an audit event.
     pub fn log(&mut self, event: &AuditEvent) -> Result<()> {
+        // Check if rotation is needed before writing
+        if self.current_size >= MAX_LOG_SIZE {
+            self.rotate()?;
+        }
+
         let json = serde_json::to_string(event)?;
-        writeln!(self.file, "{json}")?;
+        let bytes_written = writeln!(self.file, "{json}")
+            .map(|()| json.len() as u64 + 1)
+            .unwrap_or(0);
+        self.current_size += bytes_written;
         Ok(())
     }
 
@@ -76,4 +104,50 @@ impl AuditLogger {
             status: status.to_string(),
         })
     }
+
+    /// Rotate log files: audit.jsonl → audit.jsonl.1, .1 → .2, etc.
+    fn rotate(&mut self) -> Result<()> {
+        // Close current file by dropping and reopening later
+        self.file.flush()?;
+
+        // Shift existing rotated files
+        for i in (1..MAX_ROTATIONS).rev() {
+            let from = rotation_path(&self.path, i);
+            let to = rotation_path(&self.path, i + 1);
+            if from.exists() {
+                let _ = std::fs::rename(&from, &to);
+            }
+        }
+
+        // Rename current → .1
+        let first_rotation = rotation_path(&self.path, 1);
+        let _ = std::fs::rename(&self.path, &first_rotation);
+
+        // Delete oldest if over limit
+        let oldest = rotation_path(&self.path, MAX_ROTATIONS);
+        if oldest.exists() {
+            let _ = std::fs::remove_file(&oldest);
+        }
+
+        // Reopen fresh log
+        self.file = OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open(&self.path)
+            .with_context(|| "failed to reopen audit log after rotation")?;
+        self.current_size = 0;
+
+        Ok(())
+    }
+}
+
+/// Build path for a rotated log file: `audit.jsonl.1`, `audit.jsonl.2`, etc.
+fn rotation_path(base: &std::path::Path, index: u32) -> PathBuf {
+    let name = format!(
+        "{}.{index}",
+        base.file_name()
+            .and_then(|n| n.to_str())
+            .unwrap_or("audit.jsonl")
+    );
+    base.with_file_name(name)
 }
