@@ -133,6 +133,17 @@ impl SiteMapBuilder {
         }
     }
 
+    /// Merge additional flag bits into a node's flags.
+    ///
+    /// Used to set computed flags like `HAS_PRICE`, `HAS_MEDIA`, `HAS_FORM`
+    /// after feature encoding.
+    pub fn merge_flags(&mut self, node: u32, flags: NodeFlags) {
+        let idx = node as usize;
+        if idx < self.nodes.len() {
+            self.nodes[idx].flags.0 |= flags.0;
+        }
+    }
+
     /// Build the final SiteMap.
     pub fn build(mut self) -> SiteMap {
         let node_count = self.nodes.len();

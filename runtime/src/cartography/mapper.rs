@@ -197,7 +197,7 @@ impl Mapper {
                 &page.url,
             );
 
-            let features = feature_encoder::encode_features(
+            let encode_result = feature_encoder::encode_features_with_flags(
                 &page.extraction,
                 &page.nav_result,
                 &page.url,
@@ -208,11 +208,14 @@ impl Mapper {
             let idx = builder.add_node(
                 &page.url,
                 page_type,
-                features,
+                encode_result.features,
                 (confidence * 255.0) as u8,
             );
             url_to_index.insert(page.url.clone(), idx);
             url_to_index.insert(page.final_url.clone(), idx);
+
+            // Set computed flags (HAS_PRICE, HAS_MEDIA, HAS_FORM, etc.)
+            builder.merge_flags(idx, encode_result.flags);
 
             // Add actions
             let actions = action_encoder::encode_actions_from_json(&page.extraction.actions);
@@ -221,7 +224,7 @@ impl Mapper {
             }
 
             // Mark as rendered
-            builder.set_rendered(idx, features);
+            builder.set_rendered(idx, encode_result.features);
         }
 
         // Add edges from discovered links
@@ -274,7 +277,7 @@ impl Mapper {
             let (page_type, confidence) =
                 page_classifier::classify_page(&page.extraction, &page.url);
 
-            let features = feature_encoder::encode_features(
+            let encode_result = feature_encoder::encode_features_with_flags(
                 &page.extraction,
                 &page.nav_result,
                 &page.url,
@@ -285,15 +288,18 @@ impl Mapper {
             rendered_features_by_type
                 .entry(page_type)
                 .or_default()
-                .push(features);
+                .push(encode_result.features);
 
             let idx = builder.add_node(
                 &page.url,
                 page_type,
-                features,
+                encode_result.features,
                 (confidence * 255.0) as u8,
             );
             url_to_index.insert(page.url.clone(), idx);
+
+            // Set computed flags (HAS_PRICE, HAS_MEDIA, HAS_FORM, etc.)
+            builder.merge_flags(idx, encode_result.flags);
 
             // Add actions
             let actions = action_encoder::encode_actions_from_json(&page.extraction.actions);
@@ -307,7 +313,7 @@ impl Mapper {
                 );
             }
 
-            builder.set_rendered(idx, features);
+            builder.set_rendered(idx, encode_result.features);
         }
 
         // Second pass: add unrendered nodes with interpolated features
