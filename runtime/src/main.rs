@@ -8,7 +8,9 @@ use clap::{Parser, Subcommand};
 
 mod cli;
 mod map;
+mod protocol;
 mod renderer;
+mod server;
 
 #[derive(Parser)]
 #[command(
