@@ -38,6 +38,7 @@ dashmap = "6"
 petgraph = "0.6"
 rand = "0.8"
 base64 = "0.22"
+which = "8.0.0"
 
 [dev-dependencies]
 tempfile = "3"
