@@ -16,7 +16,7 @@ pub async fn run(
 ) -> Result<()> {
 
     // Load cached map
-    let cache = MapCache::default_cache()?;
+    let mut cache = MapCache::default_cache()?;
     let map = match cache.load_map(domain)? {
         Some(m) => m,
         None => {

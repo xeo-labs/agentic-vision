@@ -14,7 +14,7 @@ pub async fn run(domain: &str, max_nodes: u32, max_render: u32, timeout: u64, fr
 
     // Check for cached map first (unless --fresh)
     if !fresh {
-        let cache = MapCache::default_cache()?;
+        let mut cache = MapCache::default_cache()?;
         if let Some(path) = cache.get(domain) {
             let data = std::fs::read(path)?;
             let map = SiteMap::deserialize(&data).context("failed to load cached map")?;

@@ -10,6 +10,13 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tokio::sync::Mutex;
 
+/// Maximum absolute age for any session context (30 minutes).
+/// Even active sessions are closed after this to prevent stale browser state.
+const MAX_CONTEXT_AGE: Duration = Duration::from_secs(30 * 60);
+
+/// Idle timeout before a context is considered abandoned (5 minutes).
+const IDLE_TIMEOUT: Duration = Duration::from_secs(5 * 60);
+
 /// A persistent browser session.
 pub struct Session {
     /// Unique session identifier.
@@ -38,8 +45,25 @@ impl Session {
     }
 
     /// Check if the session has expired.
+    ///
+    /// A session is expired if any of:
+    /// - The configured timeout has elapsed since last access
+    /// - The session has been idle longer than `IDLE_TIMEOUT` (5 min)
+    /// - The session's absolute age exceeds `MAX_CONTEXT_AGE` (30 min)
     pub fn is_expired(&self) -> bool {
-        self.last_accessed.elapsed() > self.timeout
+        // Configured per-session timeout
+        if self.last_accessed.elapsed() > self.timeout {
+            return true;
+        }
+        // Hard idle limit — kill contexts idle for >5 minutes
+        if self.last_accessed.elapsed() > IDLE_TIMEOUT {
+            return true;
+        }
+        // Hard age limit — kill contexts older than 30 minutes
+        if self.created_at.elapsed() > MAX_CONTEXT_AGE {
+            return true;
+        }
+        false
     }
 
     /// Touch the session to update last accessed time.

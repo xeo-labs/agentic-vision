@@ -3,15 +3,16 @@
 //! Handles connection lifecycle, inactivity timeouts, malformed JSON,
 //! rate limiting, and concurrent request management.
 
+use crate::map::types::SiteMap;
 use crate::protocol::{self, Method};
 use anyhow::{Context, Result};
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tokio::net::UnixListener;
-use tokio::sync::{Mutex, Notify};
+use tokio::sync::{Mutex, Notify, RwLock};
 use tracing::{error, info, warn};
 
 /// Inactivity timeout per connection (30 seconds).
@@ -30,6 +31,9 @@ pub struct Server {
     shutdown: Arc<Notify>,
     /// Track request IDs to reject duplicates.
     seen_ids: Arc<Mutex<HashSet<String>>>,
+    /// In-memory map store. RwLock allows concurrent reads (QUERY/PATHFIND)
+    /// while serializing writes (MAP completion).
+    maps: Arc<RwLock<HashMap<String, SiteMap>>>,
 }
 
 impl Server {
@@ -40,6 +44,7 @@ impl Server {
             started_at: Instant::now(),
             shutdown: Arc::new(Notify::new()),
             seen_ids: Arc::new(Mutex::new(HashSet::new())),
+            maps: Arc::new(RwLock::new(HashMap::new())),
         }
     }
 

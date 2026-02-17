@@ -10,7 +10,7 @@ pub async fn run(domain: &str, from: u32, to: u32) -> Result<()> {
     let s = Styled::new();
 
     // Load cached map
-    let cache = MapCache::default_cache()?;
+    let mut cache = MapCache::default_cache()?;
     let map = match cache.load_map(domain)? {
         Some(m) => m,
         None => {
