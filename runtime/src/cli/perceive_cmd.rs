@@ -4,8 +4,13 @@ use anyhow::Result;
 
 /// Run the perceive command.
 pub async fn run(url: &str, format: &str) -> Result<()> {
-    println!("cortex perceive: not yet implemented");
-    println!("  url:    {url}");
-    println!("  format: {format}");
+    println!("Perceiving {url}...");
+
+    // TODO: When browser pool and perceive handler are wired up,
+    // render the page and return its encoding here.
+    println!("\nPerceive command requires a running Cortex daemon with browser pool.");
+    println!("Start the daemon with: cortex start");
+    println!("Output format: {format}");
+
     Ok(())
 }

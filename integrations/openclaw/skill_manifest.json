@@ -1,0 +1,21 @@
+{
+  "name": "cortex-web-cartography",
+  "version": "0.1.0",
+  "description": "Cortex web cartography skills for OpenClaw agents",
+  "skills": [
+    {
+      "name": "cortex_map",
+      "entry": "skills/cortex_map.py",
+      "description": "Map an entire website into a navigable binary graph"
+    },
+    {
+      "name": "cortex_navigate",
+      "entry": "skills/cortex_navigate.py",
+      "description": "Query and pathfind through mapped websites"
+    }
+  ],
+  "dependencies": {
+    "runtime": "cortex-runtime >= 0.1.0",
+    "python": "cortex-client >= 0.1.0"
+  }
+}
