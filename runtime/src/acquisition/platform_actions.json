@@ -1,0 +1,130 @@
+{
+  "shopify": {
+    "indicators": {
+      "js_patterns": ["Shopify.", "Shopify.shop"],
+      "html_patterns": ["/cdn.shopify.com/", "shopify-section"]
+    },
+    "actions": [
+      {
+        "label": "Add to Cart",
+        "opcode": { "category": 2, "action": 0 },
+        "action_type": "add_to_cart",
+        "url_template": "/cart/add.js",
+        "method": "POST",
+        "confidence": 0.90
+      },
+      {
+        "label": "Update Cart",
+        "opcode": { "category": 2, "action": 2 },
+        "action_type": "update_cart",
+        "url_template": "/cart/update.js",
+        "method": "POST",
+        "confidence": 0.85
+      },
+      {
+        "label": "Remove from Cart",
+        "opcode": { "category": 2, "action": 1 },
+        "action_type": "remove_from_cart",
+        "url_template": "/cart/change.js",
+        "method": "POST",
+        "confidence": 0.85
+      },
+      {
+        "label": "Get Cart",
+        "opcode": { "category": 2, "action": 6 },
+        "action_type": "get_cart",
+        "url_template": "/cart.js",
+        "method": "GET",
+        "confidence": 0.90
+      }
+    ]
+  },
+  "woocommerce": {
+    "indicators": {
+      "js_patterns": ["wc_add_to_cart_params", "woocommerce"],
+      "html_patterns": ["woocommerce", "/wp-content/plugins/woocommerce"]
+    },
+    "actions": [
+      {
+        "label": "Add to Cart",
+        "opcode": { "category": 2, "action": 0 },
+        "action_type": "add_to_cart",
+        "url_template": "/?wc-ajax=add_to_cart",
+        "method": "POST",
+        "confidence": 0.85
+      },
+      {
+        "label": "View Cart",
+        "opcode": { "category": 2, "action": 6 },
+        "action_type": "view_cart",
+        "url_template": "/cart/",
+        "method": "GET",
+        "confidence": 0.85
+      },
+      {
+        "label": "Apply Coupon",
+        "opcode": { "category": 2, "action": 3 },
+        "action_type": "apply_coupon",
+        "url_template": "/?wc-ajax=apply_coupon",
+        "method": "POST",
+        "confidence": 0.80
+      }
+    ]
+  },
+  "magento": {
+    "indicators": {
+      "js_patterns": ["Magento_", "requirejs-config", "mage/"],
+      "html_patterns": ["Magento_Ui", "Magento_Catalog"]
+    },
+    "actions": [
+      {
+        "label": "Add to Cart",
+        "opcode": { "category": 2, "action": 0 },
+        "action_type": "add_to_cart",
+        "url_template": "/checkout/cart/add/",
+        "method": "POST",
+        "confidence": 0.85
+      },
+      {
+        "label": "Add to Wishlist",
+        "opcode": { "category": 2, "action": 5 },
+        "action_type": "add_to_wishlist",
+        "url_template": "/wishlist/index/add/",
+        "method": "POST",
+        "confidence": 0.80
+      },
+      {
+        "label": "Add to Compare",
+        "opcode": { "category": 2, "action": 4 },
+        "action_type": "add_to_compare",
+        "url_template": "/catalog/product_compare/add/",
+        "method": "POST",
+        "confidence": 0.80
+      }
+    ]
+  },
+  "bigcommerce": {
+    "indicators": {
+      "js_patterns": ["BigCommerce", "bigcommerce"],
+      "html_patterns": ["bigcommerce", "data-product-id"]
+    },
+    "actions": [
+      {
+        "label": "Add to Cart",
+        "opcode": { "category": 2, "action": 0 },
+        "action_type": "add_to_cart",
+        "url_template": "/remote/v1/cart/add",
+        "method": "POST",
+        "confidence": 0.85
+      },
+      {
+        "label": "Get Cart",
+        "opcode": { "category": 2, "action": 6 },
+        "action_type": "get_cart",
+        "url_template": "/api/storefront/cart",
+        "method": "GET",
+        "confidence": 0.85
+      }
+    ]
+  }
+}

@@ -467,6 +467,12 @@ pub struct ActionRecord {
     pub cost_hint: u8,
     /// 0=safe, 1=cautious, 2=destructive
     pub risk: u8,
+    /// Whether this action can be executed via HTTP (no browser needed).
+    /// Actions discovered from HTML forms, JS API endpoints, or known platform
+    /// templates are HTTP-executable. The agent can use this to prefer instant
+    /// HTTP actions over slow browser-based execution.
+    #[serde(default)]
+    pub http_executable: bool,
 }
 
 // ─── MapHeader ────────────────────────────────────────────────────────────────

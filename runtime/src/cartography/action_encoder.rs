@@ -34,6 +34,7 @@ pub fn encode_actions_from_json(json_actions: &serde_json::Value) -> Vec<ActionR
                 target_node: -2, // Unknown at extraction time
                 cost_hint: cost,
                 risk,
+                http_executable: false,
             }
         })
         .collect()
@@ -51,6 +52,7 @@ fn encode_single_action(action: &ExtractedAction) -> ActionRecord {
         target_node: -2, // Unknown until resolved
         cost_hint: 0,
         risk: action.risk,
+        http_executable: false,
     }
 }
 

@@ -117,6 +117,30 @@ impl SiteMapBuilder {
                 target_node,
                 cost_hint,
                 risk,
+                http_executable: false,
+            },
+        });
+    }
+
+    /// Add an HTTP-executable action available on a node.
+    ///
+    /// HTTP-executable actions can be executed via HTTP POST/GET without a browser.
+    pub fn add_action_http(
+        &mut self,
+        node: u32,
+        opcode: OpCode,
+        target_node: i32,
+        cost_hint: u8,
+        risk: u8,
+    ) {
+        self.actions.push(ActionData {
+            node,
+            action: ActionRecord {
+                opcode,
+                target_node,
+                cost_hint,
+                risk,
+                http_executable: true,
             },
         });
     }

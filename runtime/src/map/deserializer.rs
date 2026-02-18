@@ -145,6 +145,7 @@ impl SiteMap {
                 target_node,
                 cost_hint,
                 risk,
+                http_executable: false, // Binary format doesn't store this yet
             });
         }
 
