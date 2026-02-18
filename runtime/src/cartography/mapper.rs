@@ -195,24 +195,70 @@ impl Mapper {
         if all_urls.len() < 10 {
             let common_paths = [
                 // General
-                "/about", "/help", "/contact", "/faq", "/terms", "/privacy",
-                "/search", "/sitemap", "/login", "/register", "/account",
+                "/about",
+                "/help",
+                "/contact",
+                "/faq",
+                "/terms",
+                "/privacy",
+                "/search",
+                "/sitemap",
+                "/login",
+                "/register",
+                "/account",
                 // E-commerce
-                "/products", "/categories", "/shop", "/deals", "/cart",
-                "/computers", "/laptops", "/phones", "/tv", "/audio",
-                "/appliances", "/cameras", "/tablets", "/accessories",
-                "/sale", "/new-arrivals", "/best-sellers", "/brands",
+                "/products",
+                "/categories",
+                "/shop",
+                "/deals",
+                "/cart",
+                "/computers",
+                "/laptops",
+                "/phones",
+                "/tv",
+                "/audio",
+                "/appliances",
+                "/cameras",
+                "/tablets",
+                "/accessories",
+                "/sale",
+                "/new-arrivals",
+                "/best-sellers",
+                "/brands",
                 // News/media
-                "/news", "/blog", "/articles", "/world", "/politics",
-                "/business", "/technology", "/sports", "/entertainment",
-                "/opinion", "/science", "/health", "/lifestyle",
-                "/national", "/tech", "/culture",
+                "/news",
+                "/blog",
+                "/articles",
+                "/world",
+                "/politics",
+                "/business",
+                "/technology",
+                "/sports",
+                "/entertainment",
+                "/opinion",
+                "/science",
+                "/health",
+                "/lifestyle",
+                "/national",
+                "/tech",
+                "/culture",
                 // Docs/reference
-                "/docs", "/guide", "/api", "/reference", "/tutorials",
-                "/getting-started", "/learn", "/documentation",
+                "/docs",
+                "/guide",
+                "/api",
+                "/reference",
+                "/tutorials",
+                "/getting-started",
+                "/learn",
+                "/documentation",
                 // Community
-                "/community", "/forum", "/discussions", "/popular",
-                "/trending", "/explore", "/discover",
+                "/community",
+                "/forum",
+                "/discussions",
+                "/popular",
+                "/trending",
+                "/explore",
+                "/discover",
             ];
             for path in &common_paths {
                 let url = format!("https://{}{}", request.domain, path);
@@ -738,11 +784,7 @@ impl Mapper {
                         .count();
                     let safe_ratio = safe_count as f32 / total.max(1) as f32;
                     builder.update_feature(idx, FEAT_SAFE_ACTION_RATIO, safe_ratio);
-                    builder.update_feature(
-                        idx,
-                        FEAT_CAUTIOUS_ACTION_RATIO,
-                        1.0 - safe_ratio,
-                    );
+                    builder.update_feature(idx, FEAT_CAUTIOUS_ACTION_RATIO, 1.0 - safe_ratio);
 
                     // Check for primary CTA (commerce or auth opcodes)
                     let has_cta = http_actions
@@ -1157,9 +1199,8 @@ fn extract_urls_from_page_source(html: &str, domain: &str) -> Vec<String> {
     // 2. Extract URLs from <script> tag content (JSON state embeds)
     if let Ok(sel) = Selector::parse("script") {
         let domain_escaped = domain.replace('.', r"\.");
-        let url_pattern = format!(
-            r#"https?://(?:www\.)?{domain_escaped}(/[^"'\s<>\{{}}\\]{{1,500}})"#
-        );
+        let url_pattern =
+            format!(r#"https?://(?:www\.)?{domain_escaped}(/[^"'\s<>\{{}}\\]{{1,500}})"#);
         let url_re = match regex::Regex::new(&url_pattern) {
             Ok(re) => re,
             Err(_) => return urls,

@@ -497,13 +497,8 @@ fn extract_actions(document: &Html, base_url: &str, config: &Value, result: &mut
                 if label.is_empty() {
                     continue;
                 }
-                let opcode = classify_action_label(&label, action_keywords)
-                    .unwrap_or((0x00, 0x00)); // default: navigation click
-                let confidence = if opcode != (0x00, 0x00) {
-                    0.90
-                } else {
-                    0.70
-                };
+                let opcode = classify_action_label(&label, action_keywords).unwrap_or((0x00, 0x00)); // default: navigation click
+                let confidence = if opcode != (0x00, 0x00) { 0.90 } else { 0.70 };
                 result.actions.push(DiscoveredAction {
                     label,
                     opcode,
@@ -565,8 +560,7 @@ fn extract_actions(document: &Html, base_url: &str, config: &Value, result: &mut
                 if label.is_empty() {
                     continue;
                 }
-                let opcode =
-                    classify_action_label(&label, action_keywords).unwrap_or((0x00, 0x00));
+                let opcode = classify_action_label(&label, action_keywords).unwrap_or((0x00, 0x00));
                 result.actions.push(DiscoveredAction {
                     label,
                     opcode,
@@ -620,14 +614,15 @@ fn extract_actions(document: &Html, base_url: &str, config: &Value, result: &mut
     }
 
     // 5. Search input fields (even outside forms)
-    if let Ok(sel) = Selector::parse("input[type=\"search\"], input[name=\"q\"], input[name=\"query\"], input[name=\"search\"]") {
-        for _el in document.select(&sel) {
+    if let Ok(sel) = Selector::parse(
+        "input[type=\"search\"], input[name=\"q\"], input[name=\"query\"], input[name=\"search\"]",
+    ) {
+        if document.select(&sel).next().is_some() {
             result.actions.push(DiscoveredAction {
                 label: "Search".to_string(),
                 opcode: (0x01, 0x00), // navigation: search
                 confidence: 0.85,
             });
-            break; // One is enough
         }
     }
 }
