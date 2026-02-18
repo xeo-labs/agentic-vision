@@ -111,7 +111,7 @@ build-backend = "hatchling.build"
 
 ```
 # CLI shell
-runtime/src/main.rs                      # clap CLI: map, query, pathfind, start, stop, doctor, status, perceive
+runtime/src/main.rs                      # clap CLI: map, query, pathfind, start, stop, restart, doctor, status, perceive, install, plug, cache, completions
 runtime/src/cli/mod.rs                   # module declarations
 runtime/src/cli/start.rs                 # daemonize, PID file, socket creation
 runtime/src/cli/stop.rs                  # read PID, SIGTERM, cleanup
@@ -159,6 +159,13 @@ runtime/src/acquisition/js_analyzer.rs      # JavaScript source analysis for API
 runtime/src/acquisition/platform_actions.json # platform-specific action templates
 runtime/src/acquisition/http_session.rs     # HTTP session management with cookie jar
 runtime/src/acquisition/auth.rs             # HTTP authentication (password, OAuth, API key)
+runtime/src/acquisition/drag_discovery.rs    # Drag-and-drop action discovery via semantic API replay
+runtime/src/acquisition/drag_platforms.json   # Platform-specific drag-drop API patterns
+runtime/src/acquisition/canvas_extractor.rs  # Canvas/WebGL state extraction via accessibility tree and internal APIs
+runtime/src/acquisition/known_canvas_apis.json # Known canvas app API patterns
+runtime/src/acquisition/ws_discovery.rs      # WebSocket endpoint discovery and protocol detection
+runtime/src/acquisition/ws_platforms.json    # Platform-specific WebSocket protocol patterns
+runtime/src/acquisition/webmcp.rs            # WebMCP tool discovery and execution via navigator.modelContext
 
 runtime/src/cartography/rate_limiter.rs  # respect crawl-delay, max concurrent per domain
 
@@ -228,6 +235,7 @@ runtime/src/live/refresh.rs              # REFRESH handler: re-render nodes, upd
 runtime/src/live/act.rs                  # ACT handler: execute opcode on live page
 runtime/src/live/watch.rs                # WATCH handler: periodic refresh, stream deltas
 runtime/src/live/session.rs              # session management for multi-step flows
+runtime/src/live/websocket.rs            # native WebSocket session management for real-time apps
 
 runtime/src/pool/mod.rs
 runtime/src/pool/manager.rs              # browser pool: create/reuse/evict contexts
@@ -245,8 +253,8 @@ runtime/src/intelligence/mod.rs
 runtime/src/intelligence/progressive.rs      # background refinement after initial map delivery
 runtime/src/intelligence/cache.rs            # map caching: don't re-map fresh sites
 runtime/src/intelligence/cross_site.rs       # merge/compare maps from multiple domains
-# Note: smart_sampler.rs and interpolator.rs were removed in v0.2.0
-# Their functionality is now handled by the acquisition engine and pattern engine
+# Note: The acquisition engine and pattern engine replaced the former
+# smart_sampler and interpolator modules as of v0.2.0
 ```
 
 ### Phase 7: Framework Integrations
@@ -257,6 +265,11 @@ integrations/crewai/cortex_crewai/tools.py
 integrations/openclaw/skills/cortex_map.py
 integrations/openclaw/skills/cortex_navigate.py
 integrations/openclaw/skill_manifest.json
+integrations/mcp-server/src/index.ts        # MCP server for Claude, Cursor, Continue, Windsurf
+integrations/mcp-server/src/cortex-client.ts # MCP server's Cortex socket client
+integrations/openapi.yaml                   # OpenAPI 3.0 REST API specification
+runtime/src/rest.rs                         # REST API endpoints (Axum)
+runtime/src/cli/plug.rs                     # cortex plug: agent auto-discovery and MCP injection
 
 runtime/src/cli/map_cmd.rs               # cortex map <domain> [--max-nodes N] [--render N]
 runtime/src/cli/query_cmd.rs             # cortex query <domain> --type product --price-lt 300

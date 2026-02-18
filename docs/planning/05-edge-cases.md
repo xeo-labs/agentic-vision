@@ -17,7 +17,7 @@ The CLI is the first thing anyone interacts with. It must be flawless.
 **Should:** Print a branded, concise summary — not a wall of text.
 
 ```
-Cortex v0.1.0 — Rapid web cartographer for AI agents
+Cortex v0.4.2 — Rapid web cartographer for AI agents
 
 Usage: cortex <command>
 
@@ -28,9 +28,13 @@ Commands:
   perceive   Perceive a single live page
   start      Start the Cortex background process
   stop       Stop the Cortex background process
+  restart    Restart the background process
   status     Show runtime status and cached maps
   doctor     Check environment and diagnose issues
   install    Download and install Chromium
+  plug       Auto-discover AI agents and inject Cortex as an MCP tool
+  cache      Manage cached maps (clear, list)
+  completions  Generate shell completions (bash/zsh/fish)
 
 Run 'cortex <command> --help' for details on each command.
 ```
@@ -421,7 +425,7 @@ GOOD: "Browser crashed while rendering https://example.com/heavy-page.
 | Cookie consent overlay blocking content | Detect cookie banner (common class names, z-index, position:fixed). Auto-dismiss by finding accept button. If can't dismiss, extract content underneath. |
 | Lazy-loaded images below the fold | Scroll the page before extraction, or detect `loading="lazy"` and data-src attributes. Extract the real image URL from data-src. |
 | Shadow DOM components | Pierce shadow DOM during extraction. `dom-walker.ts` must handle shadowRoot traversal. |
-| Canvas/WebGL rendered content | Cannot extract text from canvas. Flag node as `has_media` with low text_density. OCR is out of scope for v0.1.0. |
+| Canvas/WebGL rendered content | v0.3.0 added `canvas_extractor.rs`: extract state via accessibility trees (`Accessibility.getFullAXTree()`), internal APIs (e.g., Google Sheets data API, Figma REST API), and app state from JS memory (Redux, globals). Pure pixel-rendered canvases without accessibility data fall back to `has_media` flagging. |
 | PDF/document viewer embedded | Detect PDF embed. Node type = download_page. Extract link to PDF, not PDF content. |
 | Anti-scraping measures (style-based text, CSS content) | Some sites render text via CSS `content:` property or use custom fonts to scramble characters. Detect low text-to-element ratio as a signal. Set low confidence. |
 
@@ -765,11 +769,17 @@ Don't hide these. Put them in a LIMITATIONS.md:
 
 5. **Mapping speed depends on the site.** Sites with sitemaps map in 1-3 seconds. Sites without sitemaps require crawling and take 5-15 seconds. Very large sites (>100K pages) may take 30+ seconds.
 
-6. **Not all actions can be mapped.** Complex JavaScript interactions (drag-and-drop, canvas interactions, custom widgets) may not be detectable. The action catalog covers standard HTML elements.
+6. **Most actions can be mapped (v0.3.0+).** Drag-and-drop is ~95% solvable via semantic API replay (`drag_discovery.rs`). Canvas app state is extractable via accessibility trees and internal APIs (`canvas_extractor.rs`). WebSocket-based actions use native WS connections (`ws_discovery.rs`). Only ~5% of truly custom widget interactions remain unsupported.
 
 7. **Currency is not converted.** Price features store raw values in the page's original currency. Cross-site price comparison across currencies is the agent's responsibility.
 
 8. **Rate limiting is best-effort.** Cortex respects robots.txt crawl-delay and self-limits to 5 concurrent requests, but aggressive crawling may still trigger rate limits on sensitive sites.
+
+9. **WebSocket discovery is pattern-based (v0.3.0+).** Discovery depends on recognizable patterns (`new WebSocket(...)`, Socket.IO, SockJS, SignalR) and a curated platform list (`ws_platforms.json`). Sites using custom WebSocket implementations without matching patterns will not have their endpoints discovered. Edge cases: binary WebSocket protocols, authentication-gated WebSocket connections, and connection drops during long-running sessions.
+
+10. **WebMCP adoption is near-zero (v0.4.0+).** `navigator.modelContext` is a new standard. As of early 2026, virtually no production sites have adopted it. The detection mechanism is ready for when adoption increases. Edge cases: sites with partial WebMCP support, tool parameter validation failures, and browser context requirements for WebMCP execution.
+
+11. **`cortex plug` agent detection is heuristic.** Agent detection relies on known config file paths and patterns. Edge cases: agent not found (custom install path), config file permission errors, already-injected detection, and conflicting MCP server entries.
 
 ---
 
