@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.4.4 (2026-02-18)
+
+### Interactive REPL — Claude Code-Style Terminal UI
+
+- **Interactive mode**: Run `cortex` with no subcommand to enter the interactive REPL
+- **15 slash commands**: `/map`, `/query`, `/pathfind`, `/perceive`, `/status`, `/doctor`, `/maps`, `/use`, `/settings`, `/cache`, `/plug`, `/help`, `/clear`, `/exit`
+- **Tab completion**: Complete commands, cached domains, page types with Tab key
+- **Ghost text hints**: See command suggestions as you type
+- **Command history**: Persistent history at `~/.cortex/repl_history`
+- **Animated progress**: `indicatif` multi-progress bars during site mapping
+- **Active domain**: After `/map example.com`, subsequent queries auto-target that domain
+- **Welcome banner**: Shows daemon status, cached maps count, and version on startup
+- **Dependencies**: `rustyline` 14 (line editing), `indicatif` 0.17 (progress bars)
+
 ## v0.4.3 (2026-02-18)
 
 ### Phase 7E — Public Release Completion
