@@ -3,9 +3,11 @@
     "data_attributes": [
       "[data-price]",
       "[data-amount]",
-      "[data-product-price]"
+      "[data-product-price]",
+      "[data-value]",
+      "[data-price-value]"
     ],
-    "data_attr_names": ["data-price", "data-amount", "data-product-price"],
+    "data_attr_names": ["data-price", "data-amount", "data-product-price", "data-value", "data-price-value"],
     "itemprop": "[itemprop=\"price\"]",
     "selectors": [
       ".price",
@@ -13,53 +15,68 @@
       ".offer-price",
       ".current-price",
       "#priceblock_ourprice",
-      "span.a-price-whole"
+      "span.a-price-whole",
+      ".price-current",
+      ".sale-price",
+      ".price__current",
+      ".price-box .price",
+      ".priceView-customer-price span",
+      ".s-item__price",
+      "[class*=\"price\"] span",
+      ".buying-price",
+      ".Price-amount"
     ]
   },
   "rating": {
     "data_attributes": [
       "[data-rating]",
       "[data-score]",
-      "[data-stars]"
+      "[data-stars]",
+      "[data-average-rating]"
     ],
-    "data_attr_names": ["data-rating", "data-score", "data-stars"],
+    "data_attr_names": ["data-rating", "data-score", "data-stars", "data-average-rating"],
     "itemprop": "[itemprop=\"ratingValue\"]",
     "selectors": [
       ".star-rating",
       ".review-score",
-      ".rating"
+      ".rating",
+      ".customer-rating",
+      ".review-stars",
+      ".c-ratings",
+      "[class*=\"rating\"] span",
+      ".product-rating"
     ]
   },
   "availability": {
     "itemprop": "[itemprop=\"availability\"]",
-    "in_stock_classes": ["in-stock", "instock", "available"],
-    "out_of_stock_classes": ["out-of-stock", "outofstock", "unavailable", "sold-out", "soldout"]
+    "in_stock_classes": ["in-stock", "instock", "available", "add-to-cart-btn", "fulfillment-add-to-cart"],
+    "out_of_stock_classes": ["out-of-stock", "outofstock", "unavailable", "sold-out", "soldout", "not-available"]
   },
   "page_type_keywords": {
-    "product": ["product-page", "product-detail", "pdp", "product_detail"],
-    "article": ["article-page", "blog-post", "news-article", "article_page"],
-    "search": ["search-results", "search-page", "serp", "search_results"],
-    "home": ["homepage", "home-page", "landing-page", "home_page"],
-    "cart": ["cart-page", "shopping-cart", "basket", "cart_page"],
-    "checkout": ["checkout-page", "checkout-flow", "checkout_page"],
-    "login": ["login-page", "sign-in", "signin", "login_page"],
-    "account": ["account-page", "my-account", "profile-page", "account_page"],
-    "listing": ["category-page", "product-listing", "plp", "product_listing"],
-    "faq": ["faq-page", "help-page", "faq_page"],
+    "product": ["product-page", "product-detail", "pdp", "product_detail", "product-show", "item-page"],
+    "article": ["article-page", "blog-post", "news-article", "article_page", "story-page", "post-page"],
+    "search": ["search-results", "search-page", "serp", "search_results", "results-page"],
+    "home": ["homepage", "home-page", "landing-page", "home_page", "front-page", "index-page"],
+    "cart": ["cart-page", "shopping-cart", "basket", "cart_page", "mini-cart"],
+    "checkout": ["checkout-page", "checkout-flow", "checkout_page", "payment-page"],
+    "login": ["login-page", "sign-in", "signin", "login_page", "auth-page"],
+    "account": ["account-page", "my-account", "profile-page", "account_page", "dashboard"],
+    "listing": ["category-page", "product-listing", "plp", "product_listing", "collection-page", "browse-page"],
+    "faq": ["faq-page", "help-page", "faq_page", "help-center"],
     "contact": ["contact-page", "contact-us", "contact_page"],
     "about": ["about-page", "about-us", "about_page"],
-    "documentation": ["docs-page", "documentation", "api-docs", "docs_page"],
-    "forum": ["forum-page", "community", "discussion", "forum_page"],
-    "pricing": ["pricing-page", "plans-page", "pricing_page"],
-    "legal": ["legal-page", "terms-page", "privacy-policy", "legal_page"],
+    "documentation": ["docs-page", "documentation", "api-docs", "docs_page", "reference-page"],
+    "forum": ["forum-page", "community", "discussion", "forum_page", "thread-page"],
+    "pricing": ["pricing-page", "plans-page", "pricing_page", "subscription-page"],
+    "legal": ["legal-page", "terms-page", "privacy-policy", "legal_page", "tos-page"],
     "error": ["error-page", "not-found", "404-page", "error_page"],
-    "media": ["media-page", "gallery", "video-page", "media_page"]
+    "media": ["media-page", "gallery", "video-page", "media_page", "watch-page"]
   },
   "action_keywords": {
-    "commerce_add": ["add to cart", "buy now", "add to bag", "add to basket"],
-    "form_submit": ["submit", "send", "apply"],
+    "commerce_add": ["add to cart", "buy now", "add to bag", "add to basket", "purchase", "order now"],
+    "form_submit": ["submit", "send", "apply", "confirm", "continue", "proceed"],
     "auth_login": ["sign in", "log in", "login", "signin"],
-    "form_subscribe": ["subscribe", "sign up", "signup", "register"],
-    "nav_search": ["search", "find", "look up"]
+    "form_subscribe": ["subscribe", "sign up", "signup", "register", "join", "enroll"],
+    "nav_search": ["search", "find", "look up", "discover"]
   }
 }

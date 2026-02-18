@@ -4,7 +4,7 @@ use crate::cartography::mapper::Mapper;
 use crate::cli::output::{self, Styled};
 use crate::extraction::loader::ExtractionLoader;
 use crate::renderer::chromium::ChromiumRenderer;
-use crate::renderer::Renderer;
+use crate::renderer::{NoopRenderer, Renderer};
 use crate::server::Server;
 use anyhow::{Context, Result};
 use std::path::PathBuf;
@@ -122,8 +122,14 @@ pub async fn run() -> Result<()> {
         }
         Err(e) => {
             warn!("Failed to initialize Chromium: {e}");
-            warn!("MAP and PERCEIVE requests will not be available");
-            Server::new(&socket_path)
+            warn!("Running in HTTP-only mode (no browser fallback, no PERCEIVE)");
+            let renderer: Arc<dyn Renderer> = Arc::new(NoopRenderer);
+            let extractor_loader = Arc::new(
+                ExtractionLoader::new()
+                    .unwrap_or_else(|_| panic!("ExtractionLoader must initialize")),
+            );
+            let mapper = Arc::new(Mapper::new(Arc::clone(&renderer), extractor_loader));
+            Server::new(&socket_path).with_mapper(renderer, mapper)
         }
     };
 

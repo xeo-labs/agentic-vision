@@ -47,3 +47,23 @@ pub trait RenderContext: Send + Sync {
     /// Close this context.
     async fn close(self: Box<Self>) -> Result<()>;
 }
+
+/// A no-op renderer used when Chromium is unavailable.
+///
+/// The mapper's HTTP acquisition layers (0-2.5) work without a browser.
+/// This stub makes Layer 3 (browser fallback) return errors, but everything
+/// else still functions.
+pub struct NoopRenderer;
+
+#[async_trait]
+impl Renderer for NoopRenderer {
+    async fn new_context(&self) -> Result<Box<dyn RenderContext>> {
+        Err(anyhow::anyhow!("Browser not available — HTTP-only mode"))
+    }
+    async fn shutdown(&self) -> Result<()> {
+        Ok(())
+    }
+    fn active_contexts(&self) -> usize {
+        0
+    }
+}

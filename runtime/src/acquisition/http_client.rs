@@ -42,33 +42,67 @@ pub struct HeadResponse {
 #[derive(Clone)]
 pub struct HttpClient {
     client: reqwest::Client,
+    /// HTTP/1.1-only fallback client for sites that reject HTTP/2.
+    h1_client: reqwest::Client,
 }
 
 impl HttpClient {
     /// Create a new HTTP client with standard Chrome user-agent.
     pub fn new(timeout_ms: u64) -> Self {
+        let ua = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) \
+                  AppleWebKit/537.36 (KHTML, like Gecko) \
+                  Chrome/131.0.0.0 Safari/537.36";
+
         let client = reqwest::Client::builder()
             .timeout(Duration::from_millis(timeout_ms))
             .redirect(reqwest::redirect::Policy::limited(5))
-            .user_agent(
-                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) \
-                 AppleWebKit/537.36 (KHTML, like Gecko) \
-                 Chrome/131.0.0.0 Safari/537.36",
-            )
+            .user_agent(ua)
             .build()
             .unwrap_or_default();
 
-        Self { client }
+        let h1_client = reqwest::Client::builder()
+            .timeout(Duration::from_millis(timeout_ms))
+            .redirect(reqwest::redirect::Policy::limited(5))
+            .user_agent(ua)
+            .http1_only()
+            .build()
+            .unwrap_or_default();
+
+        Self { client, h1_client }
     }
 
     /// Perform a single GET request with retry on 5xx and backoff on 429.
+    ///
+    /// Falls back to HTTP/1.1 on protocol errors (some CDNs reject HTTP/2).
     pub async fn get(&self, url: &str, timeout_ms: u64) -> Result<HttpResponse> {
+        match self.get_inner(&self.client, url, timeout_ms).await {
+            Ok(resp) => Ok(resp),
+            Err(e) => {
+                // If the error looks like a protocol issue, retry with HTTP/1.1
+                let err_str = format!("{e}");
+                if err_str.contains("http2")
+                    || err_str.contains("protocol")
+                    || err_str.contains("connection closed")
+                {
+                    self.get_inner(&self.h1_client, url, timeout_ms).await
+                } else {
+                    Err(e)
+                }
+            }
+        }
+    }
+
+    async fn get_inner(
+        &self,
+        client: &reqwest::Client,
+        url: &str,
+        timeout_ms: u64,
+    ) -> Result<HttpResponse> {
         let mut retries = 0u32;
         let max_retries = 2;
 
         loop {
-            let resp = self
-                .client
+            let resp = client
                 .get(url)
                 .timeout(Duration::from_millis(timeout_ms))
                 .send()

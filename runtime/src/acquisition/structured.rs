@@ -35,6 +35,8 @@ pub struct StructuredData {
     pub has_jsonld: bool,
     /// Whether OpenGraph tags were found.
     pub has_opengraph: bool,
+    /// Whether microdata (itemprop) was found.
+    pub has_microdata: bool,
 }
 
 /// Product data extracted from JSON-LD.
@@ -139,13 +141,16 @@ pub fn extract_structured_data(html: &str, base_url: &str) -> StructuredData {
     // 3. Meta tags
     extract_meta_tags(&document, &mut sd);
 
-    // 4. Links
+    // 4. Microdata (itemprop attributes — complements JSON-LD)
+    extract_microdata(&document, &mut sd);
+
+    // 5. Links
     extract_links(&document, base_url, &mut sd);
 
-    // 5. Headings
+    // 6. Headings
     extract_headings(&document, &mut sd);
 
-    // 6. Forms
+    // 7. Forms
     extract_forms(&document, &mut sd);
 
     sd
@@ -172,7 +177,7 @@ pub fn data_completeness(sd: &StructuredData) -> f32 {
     let mut filled = 0u32;
     let total = 10u32;
 
-    // Identity: page type from JSON-LD
+    // Identity: page type from JSON-LD or microdata
     if sd.page_type.is_some() {
         filled += 2;
     }
@@ -184,7 +189,7 @@ pub fn data_completeness(sd: &StructuredData) -> f32 {
     if !sd.links.is_empty() {
         filled += 1;
     }
-    // Commerce: product data
+    // Commerce: product data (from JSON-LD or microdata)
     if !sd.products.is_empty() {
         filled += 2;
     }
@@ -196,8 +201,8 @@ pub fn data_completeness(sd: &StructuredData) -> f32 {
     if sd.meta.description.is_some() || sd.og.description.is_some() {
         filled += 1;
     }
-    // OpenGraph
-    if sd.has_opengraph {
+    // OpenGraph or microdata
+    if sd.has_opengraph || sd.has_microdata {
         filled += 1;
     }
     // Forms
@@ -465,6 +470,128 @@ fn extract_opengraph(document: &Html, sd: &mut StructuredData) {
             _ => {}
         }
     }
+}
+
+// ── Microdata extraction (itemprop) ─────────────────────────────────────────
+
+fn extract_microdata(document: &Html, sd: &mut StructuredData) {
+    // Extract product data from itemprop attributes (common on eBay, Best Buy, etc.)
+    let mut found_any = false;
+
+    // Helper: get itemprop value from content attr or inner text
+    fn itemprop_text(el: &scraper::ElementRef<'_>) -> String {
+        el.value()
+            .attr("content")
+            .map(|s| s.to_string())
+            .unwrap_or_else(|| el.text().collect::<Vec<_>>().join(" ").trim().to_string())
+    }
+
+    // Product name from itemprop="name"
+    let mut product_name: Option<String> = None;
+    if let Ok(sel) = Selector::parse("[itemprop=\"name\"]") {
+        if let Some(el) = document.select(&sel).next() {
+            let text = itemprop_text(&el);
+            if !text.is_empty() {
+                product_name = Some(text);
+                found_any = true;
+            }
+        }
+    }
+
+    // Price from itemprop="price"
+    let mut price: Option<f64> = None;
+    let mut currency: Option<String> = None;
+    if let Ok(sel) = Selector::parse("[itemprop=\"price\"]") {
+        if let Some(el) = document.select(&sel).next() {
+            let text = itemprop_text(&el);
+            price = text
+                .chars()
+                .filter(|c| c.is_ascii_digit() || *c == '.')
+                .collect::<String>()
+                .parse::<f64>()
+                .ok()
+                .filter(|v| *v > 0.0);
+            if price.is_some() {
+                found_any = true;
+            }
+        }
+    }
+    if let Ok(sel) = Selector::parse("[itemprop=\"priceCurrency\"]") {
+        if let Some(el) = document.select(&sel).next() {
+            currency = el.value().attr("content").map(|s| s.to_string());
+        }
+    }
+
+    // Rating from itemprop="ratingValue"
+    let mut rating_value: Option<f64> = None;
+    let mut review_count: Option<u64> = None;
+    if let Ok(sel) = Selector::parse("[itemprop=\"ratingValue\"]") {
+        if let Some(el) = document.select(&sel).next() {
+            let text = itemprop_text(&el);
+            rating_value = text.parse::<f64>().ok().filter(|v| v.is_finite());
+            if rating_value.is_some() {
+                found_any = true;
+            }
+        }
+    }
+    if let Ok(sel) = Selector::parse("[itemprop=\"reviewCount\"]") {
+        if let Some(el) = document.select(&sel).next() {
+            let text = itemprop_text(&el);
+            review_count = text
+                .chars()
+                .filter(|c| c.is_ascii_digit())
+                .collect::<String>()
+                .parse::<u64>()
+                .ok();
+        }
+    }
+
+    // Availability from itemprop="availability"
+    let mut availability: Option<String> = None;
+    if let Ok(sel) = Selector::parse("[itemprop=\"availability\"]") {
+        if let Some(el) = document.select(&sel).next() {
+            availability = el
+                .value()
+                .attr("href")
+                .or_else(|| el.value().attr("content"))
+                .map(|s| s.to_string());
+            if availability.is_some() {
+                found_any = true;
+            }
+        }
+    }
+
+    // Build a product if we found price or name from microdata (and no JSON-LD product)
+    if found_any && sd.products.is_empty() && (product_name.is_some() || price.is_some()) {
+        sd.products.push(JsonLdProduct {
+            name: product_name,
+            price,
+            price_currency: currency,
+            rating_value,
+            review_count,
+            availability,
+            ..Default::default()
+        });
+        // Set page type if not already set from JSON-LD
+        if sd.page_type.is_none() || sd.page_type.as_ref().map(|p| p.1).unwrap_or(0.0) < 0.85 {
+            sd.page_type = Some((PageType::ProductDetail, 0.85));
+        }
+    }
+
+    // Description from itemprop="description"
+    if sd.meta.description.is_none() {
+        if let Ok(sel) = Selector::parse("[itemprop=\"description\"]") {
+            if let Some(el) = document.select(&sel).next() {
+                let text = itemprop_text(&el);
+                if !text.is_empty() && text.len() < 500 {
+                    sd.meta.description = Some(text);
+                    found_any = true;
+                }
+            }
+        }
+    }
+
+    sd.has_microdata = found_any;
 }
 
 // ── Meta tag extraction ─────────────────────────────────────────────────────
@@ -810,6 +937,31 @@ mod tests {
         let sd = extract_structured_data(html, "https://example.com");
         let completeness = data_completeness(&sd);
         assert!(completeness > 0.5);
+    }
+
+    #[test]
+    fn test_extract_microdata_product() {
+        let html = r#"
+        <html><body>
+        <div itemscope itemtype="https://schema.org/Product">
+            <h1 itemprop="name">Wireless Mouse</h1>
+            <meta itemprop="price" content="29.99" />
+            <meta itemprop="priceCurrency" content="USD" />
+            <meta itemprop="ratingValue" content="4.3" />
+            <link itemprop="availability" href="https://schema.org/InStock" />
+        </div>
+        </body></html>
+        "#;
+
+        let sd = extract_structured_data(html, "https://shop.example.com/mouse");
+        assert!(sd.has_microdata);
+        assert_eq!(sd.products.len(), 1);
+        let p = &sd.products[0];
+        assert_eq!(p.name.as_deref(), Some("Wireless Mouse"));
+        assert_eq!(p.price, Some(29.99));
+        assert_eq!(p.price_currency.as_deref(), Some("USD"));
+        assert_eq!(p.rating_value, Some(4.3));
+        assert!(matches!(sd.page_type, Some((PageType::ProductDetail, c)) if c >= 0.85));
     }
 
     #[test]

@@ -77,13 +77,13 @@ impl Mapper {
 
         // 0a. Fetch robots.txt
         let robots_rules = self
-            .fetch_robots(&request.domain, request.respect_robots)
+            .fetch_robots(&request.domain, request.respect_robots, &http_client)
             .await;
 
         // 0b. Fetch sitemap URLs
         let sitemap_entries = tokio::time::timeout(
             layer0_budget.saturating_sub(start.elapsed()),
-            self.fetch_sitemap_urls(&request.domain, &robots_rules),
+            self.fetch_sitemap_urls(&request.domain, &robots_rules, &http_client),
         )
         .await
         .unwrap_or_else(|_| {
@@ -126,7 +126,30 @@ impl Mapper {
             _ => None,
         };
 
-        // 0d. Feed discovery (non-blocking, time-bounded)
+        // 0d. Extract URLs from embedded JS state + <link> tags
+        if let Some(ref html) = homepage_html {
+            let domain_for_js = request.domain.clone();
+            let html_for_js = html.clone();
+            let js_urls = tokio::task::spawn_blocking(move || {
+                extract_urls_from_page_source(&html_for_js, &domain_for_js)
+            })
+            .await
+            .unwrap_or_default();
+            for url in &js_urls {
+                if !all_urls.contains(url) {
+                    all_urls.push(url.clone());
+                }
+            }
+            if !js_urls.is_empty() {
+                info!(
+                    "JS state + link tags discovered {} URLs for {}",
+                    js_urls.len(),
+                    request.domain
+                );
+            }
+        }
+
+        // 0e. Feed discovery (non-blocking, time-bounded)
         if let Some(ref html) = homepage_html {
             if start.elapsed() < layer0_budget {
                 let feed_entries =
@@ -140,6 +163,29 @@ impl Mapper {
                     info!("feeds discovered {} URLs", feed_entries.len());
                 }
             }
+        }
+
+        // 0f. If still very few URLs, try common paths as heuristic fallback
+        if all_urls.len() < 10 {
+            let common_paths = [
+                "/about", "/help", "/products", "/blog", "/news", "/categories",
+                "/search", "/contact", "/faq", "/terms", "/privacy", "/sitemap",
+            ];
+            for path in &common_paths {
+                let url = format!("https://{}{}", request.domain, path);
+                if !all_urls.contains(&url) {
+                    all_urls.push(url);
+                }
+            }
+            // Also try www. prefix homepage
+            let www_url = format!("https://www.{}", request.domain);
+            if !all_urls.contains(&www_url) {
+                all_urls.insert(1, www_url);
+            }
+            info!(
+                "few URLs discovered, added common paths (now {} total)",
+                all_urls.len()
+            );
         }
 
         // Limit to max_nodes
@@ -372,21 +418,26 @@ impl Mapper {
         &self,
         domain: &str,
         respect_robots: bool,
+        http_client: &HttpClient,
     ) -> Option<robots::RobotsRules> {
         if !respect_robots {
             return None;
         }
 
         let url = format!("https://{domain}/robots.txt");
-        let resp = reqwest::get(&url).await.ok()?;
-        let text = resp.text().await.ok()?;
-        Some(robots::parse_robots(&text, "cortex"))
+        let resp = http_client.get(&url, 5000).await.ok()?;
+        if resp.status == 200 {
+            Some(robots::parse_robots(&resp.body, "cortex"))
+        } else {
+            None
+        }
     }
 
     async fn fetch_sitemap_urls(
         &self,
         domain: &str,
         robots_rules: &Option<robots::RobotsRules>,
+        http_client: &HttpClient,
     ) -> Vec<sitemap::SitemapEntry> {
         let mut sitemap_urls = Vec::new();
 
@@ -394,17 +445,28 @@ impl Mapper {
             sitemap_urls.extend(rules.sitemaps.clone());
         }
 
-        let default_sitemap = format!("https://{domain}/sitemap.xml");
-        if !sitemap_urls.contains(&default_sitemap) {
-            sitemap_urls.push(default_sitemap);
+        // Standard paths + common variants
+        let candidates = [
+            format!("https://{domain}/sitemap.xml"),
+            format!("https://{domain}/sitemap_index.xml"),
+            format!("https://www.{domain}/sitemap.xml"),
+            format!("https://{domain}/sitemaps.xml"),
+        ];
+        for candidate in &candidates {
+            if !sitemap_urls.contains(candidate) {
+                sitemap_urls.push(candidate.clone());
+            }
         }
 
         let mut all_entries = Vec::new();
         for url in &sitemap_urls {
-            if let Ok(resp) = reqwest::get(url).await {
-                if let Ok(xml) = resp.text().await {
-                    if let Ok(entries) = sitemap::parse_sitemap(&xml) {
+            if let Ok(resp) = http_client.get(url, 8000).await {
+                if resp.status == 200 {
+                    if let Ok(entries) = sitemap::parse_sitemap(&resp.body) {
                         all_entries.extend(entries);
+                        if all_entries.len() >= 500 {
+                            break; // Enough URLs found
+                        }
                     }
                 }
             }
@@ -962,9 +1024,110 @@ fn parent_path(url: &str) -> String {
     "/".to_string()
 }
 
+/// Extract URLs from embedded JavaScript state and `<link>` tags.
+///
+/// Many SPAs embed data as JSON in `<script>` tags (`__NEXT_DATA__`,
+/// `window.__INITIAL_STATE__`, etc.) or reference pages via `<link>` tags.
+/// This function extracts internal URLs from both sources.
+fn extract_urls_from_page_source(html: &str, domain: &str) -> Vec<String> {
+    use scraper::{Html, Selector};
+
+    let mut urls = Vec::new();
+    let document = Html::parse_document(html);
+
+    // 1. Extract URLs from <link> tags (alternate, preload, etc.)
+    if let Ok(sel) = Selector::parse("link[href]") {
+        for el in document.select(&sel) {
+            if let Some(href) = el.value().attr("href") {
+                let full_url = if href.starts_with("https://") || href.starts_with("http://") {
+                    href.to_string()
+                } else if href.starts_with('/') && !href.starts_with("//") {
+                    format!("https://{domain}{href}")
+                } else {
+                    continue;
+                };
+                // Only keep HTML-like URLs that belong to this domain
+                if (full_url.contains(domain) || full_url.contains(&format!("www.{domain}")))
+                    && !full_url.ends_with(".css")
+                    && !full_url.ends_with(".js")
+                    && !full_url.ends_with(".png")
+                    && !full_url.ends_with(".jpg")
+                    && !full_url.ends_with(".ico")
+                    && !full_url.ends_with(".woff2")
+                    && !full_url.ends_with(".woff")
+                    && !urls.contains(&full_url)
+                {
+                    urls.push(full_url);
+                }
+            }
+        }
+    }
+
+    // 2. Extract URLs from <script> tag content (JSON state embeds)
+    if let Ok(sel) = Selector::parse("script") {
+        let domain_escaped = domain.replace('.', r"\.");
+        let url_pattern = format!(
+            r#"https?://(?:www\.)?{domain_escaped}(/[^"'\s<>\{{}}\\]{{1,500}})"#
+        );
+        let url_re = match regex::Regex::new(&url_pattern) {
+            Ok(re) => re,
+            Err(_) => return urls,
+        };
+
+        for el in document.select(&sel) {
+            let text = el.inner_html();
+            if text.len() < 100 {
+                continue; // Skip tiny scripts
+            }
+            for mat in url_re.find_iter(&text) {
+                let url = mat.as_str().to_string();
+                // Skip asset URLs
+                if url.ends_with(".js")
+                    || url.ends_with(".css")
+                    || url.ends_with(".png")
+                    || url.ends_with(".jpg")
+                    || url.ends_with(".svg")
+                    || url.ends_with(".woff2")
+                    || url.contains("/static/")
+                    || url.contains("/_next/")
+                    || url.contains("/assets/")
+                {
+                    continue;
+                }
+                if !urls.contains(&url) {
+                    urls.push(url);
+                }
+            }
+        }
+    }
+
+    // Cap at 200 URLs to avoid overwhelming the mapper
+    urls.truncate(200);
+    urls
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_extract_urls_from_page_source() {
+        let html = r#"
+        <html><head>
+        <link rel="alternate" href="https://example.com/blog" />
+        <link rel="stylesheet" href="/style.css" />
+        <script>
+            window.__DATA__ = {"pages": ["https://example.com/products/1", "https://example.com/about"]};
+        </script>
+        </head><body></body></html>
+        "#;
+        let urls = extract_urls_from_page_source(html, "example.com");
+        assert!(urls.iter().any(|u| u.contains("/blog")));
+        assert!(urls.iter().any(|u| u.contains("/products/1")));
+        assert!(urls.iter().any(|u| u.contains("/about")));
+        // CSS file should be excluded
+        assert!(!urls.iter().any(|u| u.ends_with(".css")));
+    }
 
     #[test]
     fn test_parent_path() {
