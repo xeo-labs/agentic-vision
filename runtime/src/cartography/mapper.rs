@@ -5,12 +5,15 @@
 //!
 //! 1. **Layer 0**: Sitemap + robots.txt + HEAD scan + feed discovery
 //! 2. **Layer 1**: HTTP GET sample pages + parse structured data (JSON-LD, OG, meta)
-//! 3. **Layer 2**: API discovery for known domains
-//! 4. **Layer 3**: Browser render ONLY for pages where Layers 0-2 gave <30% data
+//! 3. **Layer 1.5**: Pattern engine (CSS selectors + regex) on pages with <50% structured data
+//! 4. **Layer 2**: API discovery for known domains
+//! 5. **Layer 2.5**: Action discovery — HTML forms + JS endpoints + platform templates
+//! 6. **Layer 3**: Browser render ONLY for pages where Layers 0-2.5 gave <20% data
 //!
 //! The browser is a last-resort fallback. For most e-commerce and news sites,
-//! Layer 1 alone provides enough data.
+//! Layers 1-2.5 provide sufficient data.
 
+use crate::acquisition::action_discovery::{self, HttpAction};
 use crate::acquisition::http_client::HttpClient;
 use crate::acquisition::pattern_engine::{self, PatternResult};
 use crate::acquisition::structured::{self, StructuredData};
@@ -239,7 +242,21 @@ impl Mapper {
                     None
                 };
 
-                results.push((resp.final_url, sd, Some(head), pattern_result, resp.body));
+                // Layer 2.5: Action discovery — forms + platform templates
+                let mut http_actions =
+                    action_discovery::discover_actions_from_html(&resp.body, &resp.final_url);
+                let platform_actions =
+                    action_discovery::discover_actions_from_platform(&resp.final_url, &resp.body);
+                http_actions.extend(platform_actions);
+
+                results.push((
+                    resp.final_url,
+                    sd,
+                    Some(head),
+                    pattern_result,
+                    resp.body,
+                    http_actions,
+                ));
             }
 
             (results, extra_links)
@@ -258,12 +275,17 @@ impl Mapper {
 
         let pattern_count = structured_results
             .iter()
-            .filter(|(_, _, _, pr, _)| pr.is_some())
+            .filter(|(_, _, _, pr, _, _)| pr.is_some())
             .count();
+        let action_count: usize = structured_results
+            .iter()
+            .map(|(_, _, _, _, _, actions)| actions.len())
+            .sum();
         info!(
-            "Layer 1+1.5 complete: {} pages parsed ({} with pattern fallback) in {:.1}s",
+            "Layers 1+1.5+2.5 complete: {} pages parsed ({} with pattern fallback, {} HTTP actions) in {:.1}s",
             structured_results.len(),
             pattern_count,
+            action_count,
             start.elapsed().as_secs_f64()
         );
 
@@ -283,7 +305,7 @@ impl Mapper {
 
         let needs_browser: Vec<String> = structured_results
             .iter()
-            .filter(|(_, sd, _, pr, _)| {
+            .filter(|(_, sd, _, pr, _, _)| {
                 let sd_completeness = structured::data_completeness(sd);
                 let has_pattern_data = pr
                     .as_ref()
@@ -297,7 +319,7 @@ impl Mapper {
                 // Only browser if BOTH structured AND patterns gave <20%
                 sd_completeness < 0.2 && !has_pattern_data
             })
-            .map(|(url, _, _, _, _)| url.clone())
+            .map(|(url, _, _, _, _, _)| url.clone())
             .collect();
 
         let mut browser_pages: Vec<BrowserRenderedPage> = Vec::new();
@@ -332,14 +354,9 @@ impl Mapper {
         // ── Build the map from all layers ──
 
         // Convert structured_results to the format build_map_from_layers expects
-        let layer_results: Vec<(
-            String,
-            StructuredData,
-            Option<crate::acquisition::http_client::HeadResponse>,
-            Option<PatternResult>,
-        )> = structured_results
+        let layer_results: Vec<LayerResult> = structured_results
             .into_iter()
-            .map(|(url, sd, head, pr, _html)| (url, sd, head, pr))
+            .map(|(url, sd, head, pr, _html, actions)| (url, sd, head, pr, actions))
             .collect();
 
         self.build_map_from_layers(
@@ -441,12 +458,7 @@ impl Mapper {
         &self,
         domain: &str,
         all_urls: &[String],
-        structured_results: &[(
-            String,
-            StructuredData,
-            Option<crate::acquisition::http_client::HeadResponse>,
-            Option<PatternResult>,
-        )],
+        structured_results: &[LayerResult],
         browser_pages: &[BrowserRenderedPage],
         max_nodes: u32,
     ) -> Result<SiteMap> {
@@ -461,7 +473,7 @@ impl Mapper {
             .collect();
 
         // First pass: add nodes with structured data (Layer 1) or browser data (Layer 3)
-        for (url, sd, head, pr) in structured_results {
+        for (url, sd, head, pr, http_actions) in structured_results {
             if url_to_index.len() as u32 >= max_nodes {
                 break;
             }
@@ -580,6 +592,14 @@ impl Mapper {
                 }
                 builder.merge_flags(idx, NodeFlags(flag_bits));
             }
+
+            // Wire HTTP-executable actions from Layer 2.5 (action discovery)
+            if let Some(&idx) = url_to_index.get(url.as_str()) {
+                for action in http_actions {
+                    let risk = ((1.0 - action.confidence) * 3.0).min(3.0) as u8;
+                    builder.add_action_http(idx, action.opcode, -2, 0, risk);
+                }
+            }
         }
 
         // Add browser-only pages (pages rendered but not in structured_results)
@@ -639,7 +659,7 @@ impl Mapper {
         }
 
         // Add edges from structured data links
-        for (url, sd, _, _) in structured_results {
+        for (url, sd, _, _, _) in structured_results {
             let from_idx = match url_to_index.get(url.as_str()) {
                 Some(&idx) => idx,
                 None => continue,
@@ -742,13 +762,23 @@ impl Mapper {
     }
 }
 
-/// Intermediate result from HTTP fetch + structured data + pattern extraction.
+/// Intermediate result from HTTP fetch + structured data + pattern extraction + actions.
 type FetchResult = (
     String,
     StructuredData,
     Option<crate::acquisition::http_client::HeadResponse>,
     Option<PatternResult>,
-    String, // raw HTML body
+    String,          // raw HTML body
+    Vec<HttpAction>, // discovered HTTP-executable actions
+);
+
+/// Result passed to the map builder: structured data + patterns + actions (no raw HTML).
+type LayerResult = (
+    String,
+    StructuredData,
+    Option<crate::acquisition::http_client::HeadResponse>,
+    Option<PatternResult>,
+    Vec<HttpAction>,
 );
 
 /// A page rendered via browser (Layer 3 fallback).
