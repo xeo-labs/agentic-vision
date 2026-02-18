@@ -1,0 +1,3228 @@
+{
+  "version": "v2",
+  "architecture": "layered_acquisition",
+  "summary": {
+    "total_sites": 100,
+    "average_score": 80.5,
+    "sites_above_90": 33,
+    "sites_above_80": 64,
+    "sites_above_50": 96,
+    "sites_below_50": 4,
+    "total_errors": 17,
+    "total_warnings": 148,
+    "jsonld_coverage": 0.94,
+    "pattern_coverage": 0.94,
+    "http_action_coverage": 0.29
+  },
+  "category_scores": {
+    "e_commerce": {
+      "average": 78.3,
+      "min": 35,
+      "max": 95
+    },
+    "news": {
+      "average": 78.7,
+      "min": 30,
+      "max": 94
+    },
+    "social": {
+      "average": 81.4,
+      "min": 35,
+      "max": 99
+    },
+    "docs": {
+      "average": 85.3,
+      "min": 63,
+      "max": 92
+    },
+    "spa": {
+      "average": 78.5,
+      "min": 56,
+      "max": 91
+    },
+    "government": {
+      "average": 85.8,
+      "min": 67,
+      "max": 100
+    },
+    "travel": {
+      "average": 70.9,
+      "min": 57,
+      "max": 92
+    },
+    "food": {
+      "average": 77.0,
+      "min": 30,
+      "max": 95
+    },
+    "financial": {
+      "average": 87.2,
+      "min": 76,
+      "max": 94
+    },
+    "misc": {
+      "average": 83.1,
+      "min": 67,
+      "max": 98
+    }
+  },
+  "results": [
+    {
+      "domain": "amazon.com",
+      "timestamp": "2026-02-18T08:07:18Z",
+      "scores": {
+        "mapping": 18,
+        "data_source": 13,
+        "features": 15,
+        "query": 15,
+        "pathfinding": 10,
+        "actions": 12,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [],
+      "diagnostics": {
+        "map_time_s": 12.34,
+        "node_count": 533,
+        "edge_count": 4177,
+        "types_found": 4,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.188,
+        "non_zero_dims": 9,
+        "nodes_with_actions": 3,
+        "http_actions_found": true,
+        "platform_actions": false
+      },
+      "total_score": 93
+    },
+    {
+      "domain": "ebay.com",
+      "timestamp": "2026-02-18T08:07:33Z",
+      "scores": {
+        "mapping": 15,
+        "data_source": 13,
+        "features": 13,
+        "query": 15,
+        "pathfinding": 10,
+        "actions": 5,
+        "live": 5
+      },
+      "errors": [
+        "PERCEIVE interior failed: Perceive failed for https://www.ebay.com/lst/AUCTION-0_1.xml.gz: navigation timed out after 30000ms"
+      ],
+      "warnings": [
+        "ACTIONS: no HTTP-executable actions found"
+      ],
+      "diagnostics": {
+        "map_time_s": 8.73,
+        "node_count": 897,
+        "edge_count": 2751,
+        "types_found": 1,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.111,
+        "non_zero_dims": 7,
+        "nodes_with_actions": 1,
+        "http_actions_found": false,
+        "platform_actions": false
+      },
+      "total_score": 76
+    },
+    {
+      "domain": "walmart.com",
+      "timestamp": "2026-02-18T08:08:14Z",
+      "scores": {
+        "mapping": 18,
+        "data_source": 10,
+        "features": 13,
+        "query": 15,
+        "pathfinding": 10,
+        "actions": 7,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [
+        "DATA: 70% nodes are low confidence",
+        "ACTIONS: no HTTP-executable actions found"
+      ],
+      "diagnostics": {
+        "map_time_s": 11.5,
+        "node_count": 124,
+        "edge_count": 720,
+        "types_found": 5,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.702,
+        "non_zero_dims": 7,
+        "nodes_with_actions": 3,
+        "http_actions_found": false,
+        "platform_actions": false
+      },
+      "total_score": 83
+    },
+    {
+      "domain": "bestbuy.com",
+      "timestamp": "2026-02-18T08:08:28Z",
+      "scores": {
+        "mapping": 6,
+        "data_source": 0,
+        "features": 9,
+        "query": 12,
+        "pathfinding": 0,
+        "actions": 3,
+        "live": 5
+      },
+      "errors": [
+        "MAP: zero edges"
+      ],
+      "warnings": [
+        "MAP: slow (55.0s)",
+        "DATA: no high-confidence (JSON-LD) nodes found",
+        "DATA: 100% nodes are low confidence",
+        "ACTIONS: no actions discovered on any node",
+        "ACTIONS: no HTTP-executable actions found"
+      ],
+      "diagnostics": {
+        "map_time_s": 55.01,
+        "node_count": 1,
+        "edge_count": 0,
+        "types_found": 1,
+        "jsonld_detected": false,
+        "patterns_detected": false,
+        "low_confidence_ratio": 1.0,
+        "non_zero_dims": 2,
+        "nodes_with_actions": 0,
+        "http_actions_found": false,
+        "platform_actions": false
+      },
+      "total_score": 35
+    },
+    {
+      "domain": "target.com",
+      "timestamp": "2026-02-18T08:09:34Z",
+      "scores": {
+        "mapping": 18,
+        "data_source": 13,
+        "features": 15,
+        "query": 15,
+        "pathfinding": 10,
+        "actions": 12,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [],
+      "diagnostics": {
+        "map_time_s": 8.94,
+        "node_count": 675,
+        "edge_count": 4031,
+        "types_found": 4,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.148,
+        "non_zero_dims": 9,
+        "nodes_with_actions": 10,
+        "http_actions_found": true,
+        "platform_actions": false
+      },
+      "total_score": 93
+    },
+    {
+      "domain": "etsy.com",
+      "timestamp": "2026-02-18T08:09:46Z",
+      "scores": {
+        "mapping": 18,
+        "data_source": 13,
+        "features": 13,
+        "query": 15,
+        "pathfinding": 10,
+        "actions": 12,
+        "live": 9
+      },
+      "errors": [],
+      "warnings": [],
+      "diagnostics": {
+        "map_time_s": 13.73,
+        "node_count": 522,
+        "edge_count": 17430,
+        "types_found": 5,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.192,
+        "non_zero_dims": 7,
+        "nodes_with_actions": 4,
+        "http_actions_found": true,
+        "platform_actions": false
+      },
+      "total_score": 90
+    },
+    {
+      "domain": "allbirds.com",
+      "timestamp": "2026-02-18T08:10:03Z",
+      "scores": {
+        "mapping": 17,
+        "data_source": 13,
+        "features": 15,
+        "query": 15,
+        "pathfinding": 10,
+        "actions": 5,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [
+        "ACTIONS: no HTTP-executable actions found"
+      ],
+      "diagnostics": {
+        "map_time_s": 29.82,
+        "node_count": 341,
+        "edge_count": 1840,
+        "types_found": 4,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.179,
+        "non_zero_dims": 7,
+        "nodes_with_actions": 2,
+        "http_actions_found": false,
+        "platform_actions": false
+      },
+      "total_score": 85
+    },
+    {
+      "domain": "alibaba.com",
+      "timestamp": "2026-02-18T08:10:36Z",
+      "scores": {
+        "mapping": 13,
+        "data_source": 11,
+        "features": 13,
+        "query": 15,
+        "pathfinding": 7,
+        "actions": 7,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [
+        "PATHFIND: no cross-graph path",
+        "ACTIONS: no HTTP-executable actions found"
+      ],
+      "diagnostics": {
+        "map_time_s": 28.4,
+        "node_count": 60,
+        "edge_count": 335,
+        "types_found": 2,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.333,
+        "non_zero_dims": 8,
+        "nodes_with_actions": 10,
+        "http_actions_found": false,
+        "platform_actions": false
+      },
+      "total_score": 76
+    },
+    {
+      "domain": "newegg.com",
+      "timestamp": "2026-02-18T08:11:10Z",
+      "scores": {
+        "mapping": 19,
+        "data_source": 15,
+        "features": 15,
+        "query": 15,
+        "pathfinding": 10,
+        "actions": 10,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [
+        "ACTIONS: no HTTP-executable actions found"
+      ],
+      "diagnostics": {
+        "map_time_s": 5.38,
+        "node_count": 1585,
+        "edge_count": 5328,
+        "types_found": 5,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.063,
+        "non_zero_dims": 8,
+        "nodes_with_actions": 3,
+        "http_actions_found": false,
+        "platform_actions": true
+      },
+      "total_score": 94
+    },
+    {
+      "domain": "wayfair.com",
+      "timestamp": "2026-02-18T08:11:18Z",
+      "scores": {
+        "mapping": 13,
+        "data_source": 10,
+        "features": 9,
+        "query": 12,
+        "pathfinding": 10,
+        "actions": 3,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [
+        "DATA: 74% nodes are low confidence",
+        "ACTIONS: no actions discovered on any node",
+        "ACTIONS: no HTTP-executable actions found"
+      ],
+      "diagnostics": {
+        "map_time_s": 27.11,
+        "node_count": 62,
+        "edge_count": 142,
+        "types_found": 3,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.742,
+        "non_zero_dims": 2,
+        "nodes_with_actions": 0,
+        "http_actions_found": false,
+        "platform_actions": false
+      },
+      "total_score": 67
+    },
+    {
+      "domain": "homedepot.com",
+      "timestamp": "2026-02-18T08:11:48Z",
+      "scores": {
+        "mapping": 15,
+        "data_source": 9,
+        "features": 11,
+        "query": 12,
+        "pathfinding": 10,
+        "actions": 5,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [
+        "ACTIONS: no HTTP-executable actions found"
+      ],
+      "diagnostics": {
+        "map_time_s": 3.06,
+        "node_count": 16,
+        "edge_count": 35,
+        "types_found": 3,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.312,
+        "non_zero_dims": 3,
+        "nodes_with_actions": 2,
+        "http_actions_found": false,
+        "platform_actions": false
+      },
+      "total_score": 72
+    },
+    {
+      "domain": "costco.com",
+      "timestamp": "2026-02-18T08:11:53Z",
+      "scores": {
+        "mapping": 18,
+        "data_source": 10,
+        "features": 11,
+        "query": 12,
+        "pathfinding": 10,
+        "actions": 3,
+        "live": 0
+      },
+      "errors": [
+        "PERCEIVE homepage failed: Perceive failed for https://costco.com: navigation failed: net::ERR_HTTP2_PROTOCOL_ERROR",
+        "PERCEIVE interior failed: Perceive failed for https://www.costco.com/sitemap_lw_l_mod_001.xml: navigation failed: net::ERR_HTTP2_PROTOCOL_ERROR"
+      ],
+      "warnings": [
+        "DATA: 50% nodes are low confidence",
+        "ACTIONS: no actions discovered on any node",
+        "ACTIONS: no HTTP-executable actions found"
+      ],
+      "diagnostics": {
+        "map_time_s": 11.65,
+        "node_count": 200,
+        "edge_count": 1205,
+        "types_found": 4,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.5,
+        "non_zero_dims": 2,
+        "nodes_with_actions": 0,
+        "http_actions_found": false,
+        "platform_actions": false
+      },
+      "total_score": 64
+    },
+    {
+      "domain": "zappos.com",
+      "timestamp": "2026-02-18T08:12:06Z",
+      "scores": {
+        "mapping": 18,
+        "data_source": 15,
+        "features": 15,
+        "query": 15,
+        "pathfinding": 7,
+        "actions": 15,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [
+        "PATHFIND: no cross-graph path"
+      ],
+      "diagnostics": {
+        "map_time_s": 13.25,
+        "node_count": 1633,
+        "edge_count": 13725,
+        "types_found": 5,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.061,
+        "non_zero_dims": 10,
+        "nodes_with_actions": 10,
+        "http_actions_found": true,
+        "platform_actions": true
+      },
+      "total_score": 95
+    },
+    {
+      "domain": "bhphotovideo.com",
+      "timestamp": "2026-02-18T08:12:22Z",
+      "scores": {
+        "mapping": 20,
+        "data_source": 11,
+        "features": 15,
+        "query": 15,
+        "pathfinding": 10,
+        "actions": 5,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [
+        "ACTIONS: no HTTP-executable actions found"
+      ],
+      "diagnostics": {
+        "map_time_s": 2.91,
+        "node_count": 240,
+        "edge_count": 22654,
+        "types_found": 4,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.417,
+        "non_zero_dims": 7,
+        "nodes_with_actions": 2,
+        "http_actions_found": false,
+        "platform_actions": false
+      },
+      "total_score": 86
+    },
+    {
+      "domain": "nordstrom.com",
+      "timestamp": "2026-02-18T08:12:26Z",
+      "scores": {
+        "mapping": 14,
+        "data_source": 8,
+        "features": 9,
+        "query": 12,
+        "pathfinding": 10,
+        "actions": 3,
+        "live": 9
+      },
+      "errors": [],
+      "warnings": [
+        "DATA: 97% nodes are low confidence",
+        "ACTIONS: no actions discovered on any node",
+        "ACTIONS: no HTTP-executable actions found"
+      ],
+      "diagnostics": {
+        "map_time_s": 7.85,
+        "node_count": 77,
+        "edge_count": 302,
+        "types_found": 1,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.974,
+        "non_zero_dims": 3,
+        "nodes_with_actions": 0,
+        "http_actions_found": false,
+        "platform_actions": false
+      },
+      "total_score": 65
+    },
+    {
+      "domain": "nytimes.com",
+      "timestamp": "2026-02-18T08:12:35Z",
+      "scores": {
+        "mapping": 17,
+        "data_source": 13,
+        "features": 13,
+        "query": 15,
+        "pathfinding": 10,
+        "actions": 5,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [
+        "ACTIONS: no HTTP-executable actions found"
+      ],
+      "diagnostics": {
+        "map_time_s": 3.98,
+        "node_count": 721,
+        "edge_count": 2286,
+        "types_found": 2,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.139,
+        "non_zero_dims": 8,
+        "nodes_with_actions": 1,
+        "http_actions_found": false,
+        "platform_actions": false
+      },
+      "total_score": 83
+    },
+    {
+      "domain": "bbc.com",
+      "timestamp": "2026-02-18T08:12:43Z",
+      "scores": {
+        "mapping": 17,
+        "data_source": 13,
+        "features": 9,
+        "query": 12,
+        "pathfinding": 10,
+        "actions": 3,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [
+        "ACTIONS: no actions discovered on any node",
+        "ACTIONS: no HTTP-executable actions found"
+      ],
+      "diagnostics": {
+        "map_time_s": 2.72,
+        "node_count": 5000,
+        "edge_count": 10419,
+        "types_found": 1,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.02,
+        "non_zero_dims": 2,
+        "nodes_with_actions": 0,
+        "http_actions_found": false,
+        "platform_actions": false
+      },
+      "total_score": 74
+    },
+    {
+      "domain": "cnn.com",
+      "timestamp": "2026-02-18T08:12:54Z",
+      "scores": {
+        "mapping": 15,
+        "data_source": 15,
+        "features": 13,
+        "query": 15,
+        "pathfinding": 10,
+        "actions": 12,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [],
+      "diagnostics": {
+        "map_time_s": 18.19,
+        "node_count": 3372,
+        "edge_count": 51158,
+        "types_found": 2,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.03,
+        "non_zero_dims": 7,
+        "nodes_with_actions": 10,
+        "http_actions_found": true,
+        "platform_actions": false
+      },
+      "total_score": 90
+    },
+    {
+      "domain": "reuters.com",
+      "timestamp": "2026-02-18T08:13:14Z",
+      "scores": {
+        "mapping": 19,
+        "data_source": 13,
+        "features": 15,
+        "query": 15,
+        "pathfinding": 10,
+        "actions": 7,
+        "live": 9
+      },
+      "errors": [],
+      "warnings": [
+        "ACTIONS: no HTTP-executable actions found"
+      ],
+      "diagnostics": {
+        "map_time_s": 4.62,
+        "node_count": 757,
+        "edge_count": 6774,
+        "types_found": 4,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.132,
+        "non_zero_dims": 7,
+        "nodes_with_actions": 10,
+        "http_actions_found": false,
+        "platform_actions": false
+      },
+      "total_score": 88
+    },
+    {
+      "domain": "theguardian.com",
+      "timestamp": "2026-02-18T08:13:23Z",
+      "scores": {
+        "mapping": 17,
+        "data_source": 15,
+        "features": 15,
+        "query": 15,
+        "pathfinding": 10,
+        "actions": 8,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [],
+      "diagnostics": {
+        "map_time_s": 3.33,
+        "node_count": 1029,
+        "edge_count": 3752,
+        "types_found": 3,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.097,
+        "non_zero_dims": 7,
+        "nodes_with_actions": 1,
+        "http_actions_found": true,
+        "platform_actions": false
+      },
+      "total_score": 90
+    },
+    {
+      "domain": "washingtonpost.com",
+      "timestamp": "2026-02-18T08:13:27Z",
+      "scores": {
+        "mapping": 6,
+        "data_source": 0,
+        "features": 9,
+        "query": 12,
+        "pathfinding": 0,
+        "actions": 3,
+        "live": 0
+      },
+      "errors": [
+        "MAP: zero edges",
+        "PERCEIVE homepage failed: Perceive failed for https://washingtonpost.com: navigation failed: net::ERR_HTTP2_PROTOCOL_ERROR"
+      ],
+      "warnings": [
+        "MAP: slow (45.4s)",
+        "DATA: no high-confidence (JSON-LD) nodes found",
+        "DATA: 100% nodes are low confidence",
+        "ACTIONS: no actions discovered on any node",
+        "ACTIONS: no HTTP-executable actions found"
+      ],
+      "diagnostics": {
+        "map_time_s": 45.37,
+        "node_count": 1,
+        "edge_count": 0,
+        "types_found": 1,
+        "jsonld_detected": false,
+        "patterns_detected": false,
+        "low_confidence_ratio": 1.0,
+        "non_zero_dims": 2,
+        "nodes_with_actions": 0,
+        "http_actions_found": false,
+        "platform_actions": false
+      },
+      "total_score": 30
+    },
+    {
+      "domain": "techcrunch.com",
+      "timestamp": "2026-02-18T08:14:14Z",
+      "scores": {
+        "mapping": 18,
+        "data_source": 13,
+        "features": 13,
+        "query": 15,
+        "pathfinding": 10,
+        "actions": 5,
+        "live": 5
+      },
+      "errors": [
+        "PERCEIVE homepage failed: Perceive failed for https://techcrunch.com: navigation timed out after 30000ms"
+      ],
+      "warnings": [
+        "ACTIONS: no HTTP-executable actions found"
+      ],
+      "diagnostics": {
+        "map_time_s": 1.02,
+        "node_count": 2210,
+        "edge_count": 574096,
+        "types_found": 3,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.045,
+        "non_zero_dims": 7,
+        "nodes_with_actions": 1,
+        "http_actions_found": false,
+        "platform_actions": false
+      },
+      "total_score": 79
+    },
+    {
+      "domain": "arstechnica.com",
+      "timestamp": "2026-02-18T08:14:46Z",
+      "scores": {
+        "mapping": 18,
+        "data_source": 9,
+        "features": 15,
+        "query": 15,
+        "pathfinding": 10,
+        "actions": 8,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [],
+      "diagnostics": {
+        "map_time_s": 10.57,
+        "node_count": 291,
+        "edge_count": 74381,
+        "types_found": 5,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.344,
+        "non_zero_dims": 7,
+        "nodes_with_actions": 1,
+        "http_actions_found": true,
+        "platform_actions": false
+      },
+      "total_score": 85
+    },
+    {
+      "domain": "theverge.com",
+      "timestamp": "2026-02-18T08:14:59Z",
+      "scores": {
+        "mapping": 19,
+        "data_source": 13,
+        "features": 15,
+        "query": 15,
+        "pathfinding": 10,
+        "actions": 12,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [],
+      "diagnostics": {
+        "map_time_s": 4.95,
+        "node_count": 629,
+        "edge_count": 9089,
+        "types_found": 5,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.159,
+        "non_zero_dims": 8,
+        "nodes_with_actions": 10,
+        "http_actions_found": true,
+        "platform_actions": false
+      },
+      "total_score": 94
+    },
+    {
+      "domain": "bloomberg.com",
+      "timestamp": "2026-02-18T08:15:30Z",
+      "scores": {
+        "mapping": 15,
+        "data_source": 13,
+        "features": 9,
+        "query": 12,
+        "pathfinding": 10,
+        "actions": 5,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [
+        "ACTIONS: no HTTP-executable actions found"
+      ],
+      "diagnostics": {
+        "map_time_s": 16.72,
+        "node_count": 820,
+        "edge_count": 1762,
+        "types_found": 2,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.066,
+        "non_zero_dims": 3,
+        "nodes_with_actions": 2,
+        "http_actions_found": false,
+        "platform_actions": false
+      },
+      "total_score": 74
+    },
+    {
+      "domain": "reddit.com",
+      "timestamp": "2026-02-18T08:15:50Z",
+      "scores": {
+        "mapping": 6,
+        "data_source": 0,
+        "features": 9,
+        "query": 12,
+        "pathfinding": 0,
+        "actions": 3,
+        "live": 5
+      },
+      "errors": [
+        "MAP: zero edges"
+      ],
+      "warnings": [
+        "MAP: slow (45.1s)",
+        "DATA: no high-confidence (JSON-LD) nodes found",
+        "DATA: 100% nodes are low confidence",
+        "ACTIONS: no actions discovered on any node",
+        "ACTIONS: no HTTP-executable actions found"
+      ],
+      "diagnostics": {
+        "map_time_s": 45.08,
+        "node_count": 1,
+        "edge_count": 0,
+        "types_found": 1,
+        "jsonld_detected": false,
+        "patterns_detected": false,
+        "low_confidence_ratio": 1.0,
+        "non_zero_dims": 2,
+        "nodes_with_actions": 0,
+        "http_actions_found": false,
+        "platform_actions": false
+      },
+      "total_score": 35
+    },
+    {
+      "domain": "x.com",
+      "timestamp": "2026-02-18T08:16:52Z",
+      "scores": {
+        "mapping": 14,
+        "data_source": 11,
+        "features": 13,
+        "query": 15,
+        "pathfinding": 10,
+        "actions": 12,
+        "live": 5
+      },
+      "errors": [
+        "PERCEIVE interior failed: Perceive failed for https://x.com/os-grok.xml: navigation timed out after 30000ms"
+      ],
+      "warnings": [
+        "MAP: slow (34.2s)"
+      ],
+      "diagnostics": {
+        "map_time_s": 34.21,
+        "node_count": 152,
+        "edge_count": 1432,
+        "types_found": 3,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.322,
+        "non_zero_dims": 8,
+        "nodes_with_actions": 10,
+        "http_actions_found": true,
+        "platform_actions": false
+      },
+      "total_score": 80
+    },
+    {
+      "domain": "linkedin.com",
+      "timestamp": "2026-02-18T08:17:58Z",
+      "scores": {
+        "mapping": 18,
+        "data_source": 15,
+        "features": 15,
+        "query": 15,
+        "pathfinding": 10,
+        "actions": 15,
+        "live": 5
+      },
+      "errors": [
+        "PERCEIVE homepage failed: Perceive failed for https://linkedin.com: navigation failed: net::ERR_HTTP_RESPONSE_CODE_FAILURE"
+      ],
+      "warnings": [],
+      "diagnostics": {
+        "map_time_s": 13.1,
+        "node_count": 2290,
+        "edge_count": 221079,
+        "types_found": 6,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.044,
+        "non_zero_dims": 8,
+        "nodes_with_actions": 10,
+        "http_actions_found": true,
+        "platform_actions": true
+      },
+      "total_score": 93
+    },
+    {
+      "domain": "medium.com",
+      "timestamp": "2026-02-18T08:18:13Z",
+      "scores": {
+        "mapping": 17,
+        "data_source": 11,
+        "features": 15,
+        "query": 15,
+        "pathfinding": 10,
+        "actions": 5,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [
+        "ACTIONS: no HTTP-executable actions found"
+      ],
+      "diagnostics": {
+        "map_time_s": 15.75,
+        "node_count": 240,
+        "edge_count": 22654,
+        "types_found": 4,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.417,
+        "non_zero_dims": 7,
+        "nodes_with_actions": 2,
+        "http_actions_found": false,
+        "platform_actions": false
+      },
+      "total_score": 83
+    },
+    {
+      "domain": "quora.com",
+      "timestamp": "2026-02-18T08:18:30Z",
+      "scores": {
+        "mapping": 20,
+        "data_source": 11,
+        "features": 15,
+        "query": 15,
+        "pathfinding": 10,
+        "actions": 5,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [
+        "ACTIONS: no HTTP-executable actions found"
+      ],
+      "diagnostics": {
+        "map_time_s": 2.79,
+        "node_count": 240,
+        "edge_count": 22654,
+        "types_found": 4,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.417,
+        "non_zero_dims": 7,
+        "nodes_with_actions": 2,
+        "http_actions_found": false,
+        "platform_actions": false
+      },
+      "total_score": 86
+    },
+    {
+      "domain": "stackoverflow.com",
+      "timestamp": "2026-02-18T08:18:34Z",
+      "scores": {
+        "mapping": 20,
+        "data_source": 11,
+        "features": 15,
+        "query": 15,
+        "pathfinding": 10,
+        "actions": 5,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [
+        "ACTIONS: no HTTP-executable actions found"
+      ],
+      "diagnostics": {
+        "map_time_s": 2.96,
+        "node_count": 240,
+        "edge_count": 22654,
+        "types_found": 4,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.417,
+        "non_zero_dims": 7,
+        "nodes_with_actions": 2,
+        "http_actions_found": false,
+        "platform_actions": false
+      },
+      "total_score": 86
+    },
+    {
+      "domain": "news.ycombinator.com",
+      "timestamp": "2026-02-18T08:18:38Z",
+      "scores": {
+        "mapping": 19,
+        "data_source": 15,
+        "features": 15,
+        "query": 15,
+        "pathfinding": 10,
+        "actions": 15,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [],
+      "diagnostics": {
+        "map_time_s": 7.31,
+        "node_count": 1079,
+        "edge_count": 257184,
+        "types_found": 7,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.093,
+        "non_zero_dims": 8,
+        "nodes_with_actions": 10,
+        "http_actions_found": true,
+        "platform_actions": true
+      },
+      "total_score": 99
+    },
+    {
+      "domain": "dev.to",
+      "timestamp": "2026-02-18T08:18:47Z",
+      "scores": {
+        "mapping": 16,
+        "data_source": 15,
+        "features": 13,
+        "query": 15,
+        "pathfinding": 10,
+        "actions": 12,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [],
+      "diagnostics": {
+        "map_time_s": 11.88,
+        "node_count": 1192,
+        "edge_count": 14807,
+        "types_found": 3,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.084,
+        "non_zero_dims": 7,
+        "nodes_with_actions": 10,
+        "http_actions_found": true,
+        "platform_actions": false
+      },
+      "total_score": 91
+    },
+    {
+      "domain": "producthunt.com",
+      "timestamp": "2026-02-18T08:19:01Z",
+      "scores": {
+        "mapping": 19,
+        "data_source": 11,
+        "features": 15,
+        "query": 15,
+        "pathfinding": 10,
+        "actions": 5,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [
+        "ACTIONS: no HTTP-executable actions found"
+      ],
+      "diagnostics": {
+        "map_time_s": 3.57,
+        "node_count": 240,
+        "edge_count": 22654,
+        "types_found": 4,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.417,
+        "non_zero_dims": 7,
+        "nodes_with_actions": 2,
+        "http_actions_found": false,
+        "platform_actions": false
+      },
+      "total_score": 85
+    },
+    {
+      "domain": "meta.discourse.org",
+      "timestamp": "2026-02-18T08:19:06Z",
+      "scores": {
+        "mapping": 15,
+        "data_source": 11,
+        "features": 11,
+        "query": 15,
+        "pathfinding": 7,
+        "actions": 7,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [
+        "PATHFIND: no cross-graph path",
+        "ACTIONS: no HTTP-executable actions found"
+      ],
+      "diagnostics": {
+        "map_time_s": 19.21,
+        "node_count": 238,
+        "edge_count": 578,
+        "types_found": 2,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.42,
+        "non_zero_dims": 4,
+        "nodes_with_actions": 10,
+        "http_actions_found": false,
+        "platform_actions": false
+      },
+      "total_score": 76
+    },
+    {
+      "domain": "docs.python.org",
+      "timestamp": "2026-02-18T08:19:27Z",
+      "scores": {
+        "mapping": 17,
+        "data_source": 15,
+        "features": 13,
+        "query": 15,
+        "pathfinding": 10,
+        "actions": 12,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [],
+      "diagnostics": {
+        "map_time_s": 4.09,
+        "node_count": 1476,
+        "edge_count": 9505,
+        "types_found": 3,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.068,
+        "non_zero_dims": 7,
+        "nodes_with_actions": 10,
+        "http_actions_found": true,
+        "platform_actions": false
+      },
+      "total_score": 92
+    },
+    {
+      "domain": "developer.mozilla.org",
+      "timestamp": "2026-02-18T08:19:33Z",
+      "scores": {
+        "mapping": 18,
+        "data_source": 13,
+        "features": 15,
+        "query": 15,
+        "pathfinding": 10,
+        "actions": 7,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [
+        "ACTIONS: no HTTP-executable actions found"
+      ],
+      "diagnostics": {
+        "map_time_s": 8.24,
+        "node_count": 3195,
+        "edge_count": 32557,
+        "types_found": 5,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.016,
+        "non_zero_dims": 7,
+        "nodes_with_actions": 10,
+        "http_actions_found": false,
+        "platform_actions": false
+      },
+      "total_score": 88
+    },
+    {
+      "domain": "doc.rust-lang.org",
+      "timestamp": "2026-02-18T08:19:43Z",
+      "scores": {
+        "mapping": 17,
+        "data_source": 15,
+        "features": 11,
+        "query": 15,
+        "pathfinding": 10,
+        "actions": 12,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [],
+      "diagnostics": {
+        "map_time_s": 6.53,
+        "node_count": 3021,
+        "edge_count": 14834,
+        "types_found": 3,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.033,
+        "non_zero_dims": 6,
+        "nodes_with_actions": 10,
+        "http_actions_found": true,
+        "platform_actions": false
+      },
+      "total_score": 90
+    },
+    {
+      "domain": "react.dev",
+      "timestamp": "2026-02-18T08:19:51Z",
+      "scores": {
+        "mapping": 18,
+        "data_source": 11,
+        "features": 15,
+        "query": 15,
+        "pathfinding": 10,
+        "actions": 7,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [
+        "ACTIONS: no HTTP-executable actions found"
+      ],
+      "diagnostics": {
+        "map_time_s": 2.72,
+        "node_count": 309,
+        "edge_count": 6086,
+        "types_found": 2,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.324,
+        "non_zero_dims": 7,
+        "nodes_with_actions": 10,
+        "http_actions_found": false,
+        "platform_actions": false
+      },
+      "total_score": 86
+    },
+    {
+      "domain": "vuejs.org",
+      "timestamp": "2026-02-18T08:19:55Z",
+      "scores": {
+        "mapping": 18,
+        "data_source": 9,
+        "features": 13,
+        "query": 15,
+        "pathfinding": 10,
+        "actions": 7,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [
+        "ACTIONS: no HTTP-executable actions found"
+      ],
+      "diagnostics": {
+        "map_time_s": 2.25,
+        "node_count": 324,
+        "edge_count": 5146,
+        "types_found": 2,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.309,
+        "non_zero_dims": 7,
+        "nodes_with_actions": 10,
+        "http_actions_found": false,
+        "platform_actions": false
+      },
+      "total_score": 82
+    },
+    {
+      "domain": "docs.github.com",
+      "timestamp": "2026-02-18T08:19:59Z",
+      "scores": {
+        "mapping": 19,
+        "data_source": 13,
+        "features": 15,
+        "query": 15,
+        "pathfinding": 10,
+        "actions": 7,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [
+        "ACTIONS: no HTTP-executable actions found"
+      ],
+      "diagnostics": {
+        "map_time_s": 4.94,
+        "node_count": 1563,
+        "edge_count": 16374,
+        "types_found": 5,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.064,
+        "non_zero_dims": 7,
+        "nodes_with_actions": 10,
+        "http_actions_found": false,
+        "platform_actions": false
+      },
+      "total_score": 89
+    },
+    {
+      "domain": "kubernetes.io",
+      "timestamp": "2026-02-18T08:20:06Z",
+      "scores": {
+        "mapping": 19,
+        "data_source": 13,
+        "features": 15,
+        "query": 15,
+        "pathfinding": 10,
+        "actions": 10,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [
+        "ACTIONS: no HTTP-executable actions found"
+      ],
+      "diagnostics": {
+        "map_time_s": 3.22,
+        "node_count": 1850,
+        "edge_count": 39990,
+        "types_found": 6,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.041,
+        "non_zero_dims": 7,
+        "nodes_with_actions": 10,
+        "http_actions_found": false,
+        "platform_actions": true
+      },
+      "total_score": 92
+    },
+    {
+      "domain": "docs.aws.amazon.com",
+      "timestamp": "2026-02-18T08:20:11Z",
+      "scores": {
+        "mapping": 17,
+        "data_source": 13,
+        "features": 13,
+        "query": 15,
+        "pathfinding": 10,
+        "actions": 7,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [
+        "ACTIONS: no HTTP-executable actions found"
+      ],
+      "diagnostics": {
+        "map_time_s": 5.21,
+        "node_count": 5066,
+        "edge_count": 10296,
+        "types_found": 3,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.012,
+        "non_zero_dims": 8,
+        "nodes_with_actions": 3,
+        "http_actions_found": false,
+        "platform_actions": false
+      },
+      "total_score": 85
+    },
+    {
+      "domain": "cloud.google.com",
+      "timestamp": "2026-02-18T08:20:18Z",
+      "scores": {
+        "mapping": 14,
+        "data_source": 3,
+        "features": 11,
+        "query": 12,
+        "pathfinding": 10,
+        "actions": 3,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [
+        "MAP: slow (36.3s)",
+        "DATA: no high-confidence (JSON-LD) nodes found",
+        "ACTIONS: no actions discovered on any node",
+        "ACTIONS: no HTTP-executable actions found"
+      ],
+      "diagnostics": {
+        "map_time_s": 36.26,
+        "node_count": 506,
+        "edge_count": 1010,
+        "types_found": 3,
+        "jsonld_detected": false,
+        "patterns_detected": false,
+        "low_confidence_ratio": 0.198,
+        "non_zero_dims": 2,
+        "nodes_with_actions": 0,
+        "http_actions_found": false,
+        "platform_actions": false
+      },
+      "total_score": 63
+    },
+    {
+      "domain": "learn.microsoft.com",
+      "timestamp": "2026-02-18T08:21:01Z",
+      "scores": {
+        "mapping": 17,
+        "data_source": 13,
+        "features": 13,
+        "query": 15,
+        "pathfinding": 10,
+        "actions": 8,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [],
+      "diagnostics": {
+        "map_time_s": 3.29,
+        "node_count": 5018,
+        "edge_count": 10105,
+        "types_found": 2,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.02,
+        "non_zero_dims": 7,
+        "nodes_with_actions": 1,
+        "http_actions_found": true,
+        "platform_actions": false
+      },
+      "total_score": 86
+    },
+    {
+      "domain": "gmail.com",
+      "timestamp": "2026-02-18T08:21:10Z",
+      "scores": {
+        "mapping": 19,
+        "data_source": 11,
+        "features": 15,
+        "query": 15,
+        "pathfinding": 10,
+        "actions": 10,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [
+        "ACTIONS: no HTTP-executable actions found"
+      ],
+      "diagnostics": {
+        "map_time_s": 4.54,
+        "node_count": 702,
+        "edge_count": 52201,
+        "types_found": 4,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.142,
+        "non_zero_dims": 8,
+        "nodes_with_actions": 10,
+        "http_actions_found": false,
+        "platform_actions": true
+      },
+      "total_score": 90
+    },
+    {
+      "domain": "maps.google.com",
+      "timestamp": "2026-02-18T08:21:17Z",
+      "scores": {
+        "mapping": 13,
+        "data_source": 8,
+        "features": 13,
+        "query": 15,
+        "pathfinding": 10,
+        "actions": 7,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [
+        "DATA: 50% nodes are low confidence",
+        "ACTIONS: no HTTP-executable actions found"
+      ],
+      "diagnostics": {
+        "map_time_s": 23.63,
+        "node_count": 26,
+        "edge_count": 48,
+        "types_found": 3,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.5,
+        "non_zero_dims": 6,
+        "nodes_with_actions": 3,
+        "http_actions_found": false,
+        "platform_actions": false
+      },
+      "total_score": 76
+    },
+    {
+      "domain": "figma.com",
+      "timestamp": "2026-02-18T08:21:43Z",
+      "scores": {
+        "mapping": 17,
+        "data_source": 13,
+        "features": 15,
+        "query": 15,
+        "pathfinding": 7,
+        "actions": 10,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [
+        "PATHFIND: no cross-graph path",
+        "ACTIONS: no HTTP-executable actions found"
+      ],
+      "diagnostics": {
+        "map_time_s": 16.0,
+        "node_count": 631,
+        "edge_count": 18338,
+        "types_found": 6,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.158,
+        "non_zero_dims": 9,
+        "nodes_with_actions": 10,
+        "http_actions_found": false,
+        "platform_actions": true
+      },
+      "total_score": 87
+    },
+    {
+      "domain": "notion.so",
+      "timestamp": "2026-02-18T08:22:01Z",
+      "scores": {
+        "mapping": 19,
+        "data_source": 15,
+        "features": 15,
+        "query": 15,
+        "pathfinding": 10,
+        "actions": 7,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [
+        "ACTIONS: no HTTP-executable actions found"
+      ],
+      "diagnostics": {
+        "map_time_s": 7.39,
+        "node_count": 1086,
+        "edge_count": 10706,
+        "types_found": 5,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.092,
+        "non_zero_dims": 7,
+        "nodes_with_actions": 10,
+        "http_actions_found": false,
+        "platform_actions": false
+      },
+      "total_score": 91
+    },
+    {
+      "domain": "vercel.com",
+      "timestamp": "2026-02-18T08:22:11Z",
+      "scores": {
+        "mapping": 19,
+        "data_source": 13,
+        "features": 15,
+        "query": 15,
+        "pathfinding": 10,
+        "actions": 7,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [
+        "ACTIONS: no HTTP-executable actions found"
+      ],
+      "diagnostics": {
+        "map_time_s": 7.34,
+        "node_count": 4205,
+        "edge_count": 22308,
+        "types_found": 7,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.024,
+        "non_zero_dims": 8,
+        "nodes_with_actions": 10,
+        "http_actions_found": false,
+        "platform_actions": false
+      },
+      "total_score": 89
+    },
+    {
+      "domain": "netflix.com",
+      "timestamp": "2026-02-18T08:22:20Z",
+      "scores": {
+        "mapping": 12,
+        "data_source": 0,
+        "features": 9,
+        "query": 12,
+        "pathfinding": 10,
+        "actions": 3,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [
+        "MAP: slow (36.6s)",
+        "DATA: no high-confidence (JSON-LD) nodes found",
+        "DATA: 100% nodes are low confidence",
+        "ACTIONS: no actions discovered on any node",
+        "ACTIONS: no HTTP-executable actions found"
+      ],
+      "diagnostics": {
+        "map_time_s": 36.56,
+        "node_count": 19,
+        "edge_count": 36,
+        "types_found": 2,
+        "jsonld_detected": false,
+        "patterns_detected": false,
+        "low_confidence_ratio": 1.0,
+        "non_zero_dims": 2,
+        "nodes_with_actions": 0,
+        "http_actions_found": false,
+        "platform_actions": false
+      },
+      "total_score": 56
+    },
+    {
+      "domain": "spotify.com",
+      "timestamp": "2026-02-18T08:23:00Z",
+      "scores": {
+        "mapping": 14,
+        "data_source": 13,
+        "features": 11,
+        "query": 12,
+        "pathfinding": 10,
+        "actions": 5,
+        "live": 9
+      },
+      "errors": [],
+      "warnings": [
+        "ACTIONS: no HTTP-executable actions found"
+      ],
+      "diagnostics": {
+        "map_time_s": 14.39,
+        "node_count": 42,
+        "edge_count": 285,
+        "types_found": 3,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.19,
+        "non_zero_dims": 6,
+        "nodes_with_actions": 2,
+        "http_actions_found": false,
+        "platform_actions": false
+      },
+      "total_score": 74
+    },
+    {
+      "domain": "airbnb.com",
+      "timestamp": "2026-02-18T08:23:16Z",
+      "scores": {
+        "mapping": 15,
+        "data_source": 10,
+        "features": 13,
+        "query": 15,
+        "pathfinding": 7,
+        "actions": 7,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [
+        "DATA: 55% nodes are low confidence",
+        "PATHFIND: no cross-graph path",
+        "ACTIONS: no HTTP-executable actions found"
+      ],
+      "diagnostics": {
+        "map_time_s": 7.94,
+        "node_count": 97,
+        "edge_count": 7402,
+        "types_found": 2,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.546,
+        "non_zero_dims": 7,
+        "nodes_with_actions": 10,
+        "http_actions_found": false,
+        "platform_actions": false
+      },
+      "total_score": 77
+    },
+    {
+      "domain": "uber.com",
+      "timestamp": "2026-02-18T08:23:27Z",
+      "scores": {
+        "mapping": 14,
+        "data_source": 7,
+        "features": 9,
+        "query": 12,
+        "pathfinding": 10,
+        "actions": 3,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [
+        "ACTIONS: no actions discovered on any node",
+        "ACTIONS: no HTTP-executable actions found"
+      ],
+      "diagnostics": {
+        "map_time_s": 29.04,
+        "node_count": 308,
+        "edge_count": 1222,
+        "types_found": 1,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.325,
+        "non_zero_dims": 3,
+        "nodes_with_actions": 0,
+        "http_actions_found": false,
+        "platform_actions": false
+      },
+      "total_score": 65
+    },
+    {
+      "domain": "stripe.com",
+      "timestamp": "2026-02-18T08:23:57Z",
+      "scores": {
+        "mapping": 18,
+        "data_source": 15,
+        "features": 15,
+        "query": 15,
+        "pathfinding": 10,
+        "actions": 7,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [
+        "ACTIONS: no HTTP-executable actions found"
+      ],
+      "diagnostics": {
+        "map_time_s": 12.79,
+        "node_count": 2306,
+        "edge_count": 24108,
+        "types_found": 4,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.043,
+        "non_zero_dims": 8,
+        "nodes_with_actions": 10,
+        "http_actions_found": false,
+        "platform_actions": false
+      },
+      "total_score": 90
+    },
+    {
+      "domain": "usa.gov",
+      "timestamp": "2026-02-18T08:24:12Z",
+      "scores": {
+        "mapping": 20,
+        "data_source": 15,
+        "features": 15,
+        "query": 15,
+        "pathfinding": 10,
+        "actions": 15,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [],
+      "diagnostics": {
+        "map_time_s": 2.9,
+        "node_count": 1599,
+        "edge_count": 13183,
+        "types_found": 4,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.063,
+        "non_zero_dims": 7,
+        "nodes_with_actions": 10,
+        "http_actions_found": true,
+        "platform_actions": true
+      },
+      "total_score": 100
+    },
+    {
+      "domain": "gov.uk",
+      "timestamp": "2026-02-18T08:24:16Z",
+      "scores": {
+        "mapping": 18,
+        "data_source": 13,
+        "features": 15,
+        "query": 15,
+        "pathfinding": 10,
+        "actions": 12,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [],
+      "diagnostics": {
+        "map_time_s": 11.83,
+        "node_count": 628,
+        "edge_count": 8838,
+        "types_found": 5,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.159,
+        "non_zero_dims": 7,
+        "nodes_with_actions": 10,
+        "http_actions_found": true,
+        "platform_actions": false
+      },
+      "total_score": 93
+    },
+    {
+      "domain": "who.int",
+      "timestamp": "2026-02-18T08:24:30Z",
+      "scores": {
+        "mapping": 19,
+        "data_source": 15,
+        "features": 15,
+        "query": 15,
+        "pathfinding": 4,
+        "actions": 7,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [
+        "PATHFIND: no path to deep node",
+        "PATHFIND: no cross-graph path",
+        "ACTIONS: no HTTP-executable actions found"
+      ],
+      "diagnostics": {
+        "map_time_s": 6.29,
+        "node_count": 1474,
+        "edge_count": 48565,
+        "types_found": 5,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.068,
+        "non_zero_dims": 8,
+        "nodes_with_actions": 10,
+        "http_actions_found": false,
+        "platform_actions": false
+      },
+      "total_score": 85
+    },
+    {
+      "domain": "un.org",
+      "timestamp": "2026-02-18T08:24:41Z",
+      "scores": {
+        "mapping": 17,
+        "data_source": 13,
+        "features": 13,
+        "query": 15,
+        "pathfinding": 7,
+        "actions": 7,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [
+        "PATHFIND: no cross-graph path",
+        "ACTIONS: no HTTP-executable actions found"
+      ],
+      "diagnostics": {
+        "map_time_s": 4.23,
+        "node_count": 770,
+        "edge_count": 20435,
+        "types_found": 2,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.13,
+        "non_zero_dims": 7,
+        "nodes_with_actions": 10,
+        "http_actions_found": false,
+        "platform_actions": false
+      },
+      "total_score": 82
+    },
+    {
+      "domain": "irs.gov",
+      "timestamp": "2026-02-18T08:24:46Z",
+      "scores": {
+        "mapping": 17,
+        "data_source": 15,
+        "features": 11,
+        "query": 15,
+        "pathfinding": 7,
+        "actions": 12,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [
+        "PATHFIND: no cross-graph path"
+      ],
+      "diagnostics": {
+        "map_time_s": 3.73,
+        "node_count": 1047,
+        "edge_count": 19436,
+        "types_found": 2,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.096,
+        "non_zero_dims": 6,
+        "nodes_with_actions": 10,
+        "http_actions_found": true,
+        "platform_actions": false
+      },
+      "total_score": 87
+    },
+    {
+      "domain": "sec.gov",
+      "timestamp": "2026-02-18T08:24:52Z",
+      "scores": {
+        "mapping": 13,
+        "data_source": 10,
+        "features": 9,
+        "query": 12,
+        "pathfinding": 10,
+        "actions": 3,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [
+        "DATA: 73% nodes are low confidence",
+        "ACTIONS: no actions discovered on any node",
+        "ACTIONS: no HTTP-executable actions found"
+      ],
+      "diagnostics": {
+        "map_time_s": 21.94,
+        "node_count": 64,
+        "edge_count": 146,
+        "types_found": 3,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.734,
+        "non_zero_dims": 2,
+        "nodes_with_actions": 0,
+        "http_actions_found": false,
+        "platform_actions": false
+      },
+      "total_score": 67
+    },
+    {
+      "domain": "census.gov",
+      "timestamp": "2026-02-18T08:25:15Z",
+      "scores": {
+        "mapping": 18,
+        "data_source": 15,
+        "features": 13,
+        "query": 15,
+        "pathfinding": 10,
+        "actions": 12,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [],
+      "diagnostics": {
+        "map_time_s": 11.8,
+        "node_count": 5287,
+        "edge_count": 46285,
+        "types_found": 5,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.019,
+        "non_zero_dims": 7,
+        "nodes_with_actions": 10,
+        "http_actions_found": true,
+        "platform_actions": false
+      },
+      "total_score": 93
+    },
+    {
+      "domain": "nasa.gov",
+      "timestamp": "2026-02-18T08:25:29Z",
+      "scores": {
+        "mapping": 17,
+        "data_source": 11,
+        "features": 15,
+        "query": 15,
+        "pathfinding": 10,
+        "actions": 5,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [
+        "ACTIONS: no HTTP-executable actions found"
+      ],
+      "diagnostics": {
+        "map_time_s": 5.16,
+        "node_count": 223,
+        "edge_count": 60370,
+        "types_found": 3,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.448,
+        "non_zero_dims": 7,
+        "nodes_with_actions": 1,
+        "http_actions_found": false,
+        "platform_actions": false
+      },
+      "total_score": 83
+    },
+    {
+      "domain": "nih.gov",
+      "timestamp": "2026-02-18T08:25:35Z",
+      "scores": {
+        "mapping": 18,
+        "data_source": 15,
+        "features": 9,
+        "query": 12,
+        "pathfinding": 10,
+        "actions": 3,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [
+        "ACTIONS: no actions discovered on any node",
+        "ACTIONS: no HTTP-executable actions found"
+      ],
+      "diagnostics": {
+        "map_time_s": 2.5,
+        "node_count": 2608,
+        "edge_count": 15267,
+        "types_found": 3,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.038,
+        "non_zero_dims": 2,
+        "nodes_with_actions": 0,
+        "http_actions_found": false,
+        "platform_actions": false
+      },
+      "total_score": 77
+    },
+    {
+      "domain": "cdc.gov",
+      "timestamp": "2026-02-18T08:25:39Z",
+      "scores": {
+        "mapping": 18,
+        "data_source": 15,
+        "features": 13,
+        "query": 15,
+        "pathfinding": 10,
+        "actions": 10,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [],
+      "diagnostics": {
+        "map_time_s": 2.21,
+        "node_count": 1058,
+        "edge_count": 4173,
+        "types_found": 3,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.095,
+        "non_zero_dims": 7,
+        "nodes_with_actions": 2,
+        "http_actions_found": true,
+        "platform_actions": false
+      },
+      "total_score": 91
+    },
+    {
+      "domain": "booking.com",
+      "timestamp": "2026-02-18T08:25:43Z",
+      "scores": {
+        "mapping": 13,
+        "data_source": 9,
+        "features": 9,
+        "query": 12,
+        "pathfinding": 10,
+        "actions": 3,
+        "live": 4
+      },
+      "errors": [
+        "PERCEIVE interior failed: Perceive failed for https://www.booking.com/sitembk-airport-el.0000.xml.gz: navigation timed out after 30000ms"
+      ],
+      "warnings": [
+        "MAP: slow (32.8s)",
+        "ACTIONS: no actions discovered on any node",
+        "ACTIONS: no HTTP-executable actions found"
+      ],
+      "diagnostics": {
+        "map_time_s": 32.82,
+        "node_count": 541,
+        "edge_count": 1080,
+        "types_found": 1,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.185,
+        "non_zero_dims": 3,
+        "nodes_with_actions": 0,
+        "http_actions_found": false,
+        "platform_actions": false
+      },
+      "total_score": 60
+    },
+    {
+      "domain": "expedia.com",
+      "timestamp": "2026-02-18T08:26:47Z",
+      "scores": {
+        "mapping": 13,
+        "data_source": 10,
+        "features": 9,
+        "query": 12,
+        "pathfinding": 10,
+        "actions": 3,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [
+        "DATA: 73% nodes are low confidence",
+        "ACTIONS: no actions discovered on any node",
+        "ACTIONS: no HTTP-executable actions found"
+      ],
+      "diagnostics": {
+        "map_time_s": 23.53,
+        "node_count": 63,
+        "edge_count": 268,
+        "types_found": 3,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.73,
+        "non_zero_dims": 2,
+        "nodes_with_actions": 0,
+        "http_actions_found": false,
+        "platform_actions": false
+      },
+      "total_score": 67
+    },
+    {
+      "domain": "tripadvisor.com",
+      "timestamp": "2026-02-18T08:27:13Z",
+      "scores": {
+        "mapping": 16,
+        "data_source": 10,
+        "features": 9,
+        "query": 12,
+        "pathfinding": 10,
+        "actions": 3,
+        "live": 9
+      },
+      "errors": [],
+      "warnings": [
+        "DATA: 74% nodes are low confidence",
+        "ACTIONS: no actions discovered on any node",
+        "ACTIONS: no HTTP-executable actions found"
+      ],
+      "diagnostics": {
+        "map_time_s": 2.17,
+        "node_count": 62,
+        "edge_count": 142,
+        "types_found": 3,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.742,
+        "non_zero_dims": 2,
+        "nodes_with_actions": 0,
+        "http_actions_found": false,
+        "platform_actions": false
+      },
+      "total_score": 69
+    },
+    {
+      "domain": "kayak.com",
+      "timestamp": "2026-02-18T08:27:17Z",
+      "scores": {
+        "mapping": 17,
+        "data_source": 15,
+        "features": 13,
+        "query": 15,
+        "pathfinding": 10,
+        "actions": 5,
+        "live": 5
+      },
+      "errors": [
+        "PERCEIVE interior failed: Perceive failed for https://www.kayak.com/sitemaps/kayak-us-car_static-agency-location_airport.xml.gz: navigation timed out after 30000ms"
+      ],
+      "warnings": [
+        "ACTIONS: no HTTP-executable actions found"
+      ],
+      "diagnostics": {
+        "map_time_s": 6.53,
+        "node_count": 1042,
+        "edge_count": 8814,
+        "types_found": 3,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.096,
+        "non_zero_dims": 7,
+        "nodes_with_actions": 1,
+        "http_actions_found": false,
+        "platform_actions": false
+      },
+      "total_score": 80
+    },
+    {
+      "domain": "hotels.com",
+      "timestamp": "2026-02-18T08:27:55Z",
+      "scores": {
+        "mapping": 13,
+        "data_source": 10,
+        "features": 9,
+        "query": 12,
+        "pathfinding": 10,
+        "actions": 3,
+        "live": 0
+      },
+      "errors": [
+        "PERCEIVE homepage failed: Perceive failed for https://hotels.com: navigation failed: net::ERR_HTTP2_PROTOCOL_ERROR",
+        "PERCEIVE interior failed: Perceive failed for https://hotels.com/about: navigation failed: net::ERR_HTTP2_PROTOCOL_ERROR"
+      ],
+      "warnings": [
+        "DATA: 74% nodes are low confidence",
+        "ACTIONS: no actions discovered on any node",
+        "ACTIONS: no HTTP-executable actions found"
+      ],
+      "diagnostics": {
+        "map_time_s": 24.28,
+        "node_count": 62,
+        "edge_count": 142,
+        "types_found": 3,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.742,
+        "non_zero_dims": 2,
+        "nodes_with_actions": 0,
+        "http_actions_found": false,
+        "platform_actions": false
+      },
+      "total_score": 57
+    },
+    {
+      "domain": "airbnb.com",
+      "timestamp": "2026-02-18T08:28:21Z",
+      "scores": {
+        "mapping": 15,
+        "data_source": 10,
+        "features": 9,
+        "query": 12,
+        "pathfinding": 10,
+        "actions": 3,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [
+        "DATA: 74% nodes are low confidence",
+        "ACTIONS: no actions discovered on any node",
+        "ACTIONS: no HTTP-executable actions found"
+      ],
+      "diagnostics": {
+        "map_time_s": 3.61,
+        "node_count": 70,
+        "edge_count": 294,
+        "types_found": 3,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.743,
+        "non_zero_dims": 2,
+        "nodes_with_actions": 0,
+        "http_actions_found": false,
+        "platform_actions": false
+      },
+      "total_score": 69
+    },
+    {
+      "domain": "skyscanner.com",
+      "timestamp": "2026-02-18T08:28:27Z",
+      "scores": {
+        "mapping": 14,
+        "data_source": 10,
+        "features": 11,
+        "query": 15,
+        "pathfinding": 4,
+        "actions": 3,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [
+        "DATA: 83% nodes are low confidence",
+        "PATHFIND: no path to deep node",
+        "PATHFIND: no cross-graph path",
+        "ACTIONS: no actions discovered on any node",
+        "ACTIONS: no HTTP-executable actions found"
+      ],
+      "diagnostics": {
+        "map_time_s": 13.89,
+        "node_count": 92,
+        "edge_count": 144,
+        "types_found": 3,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.826,
+        "non_zero_dims": 5,
+        "nodes_with_actions": 0,
+        "http_actions_found": false,
+        "platform_actions": false
+      },
+      "total_score": 67
+    },
+    {
+      "domain": "agoda.com",
+      "timestamp": "2026-02-18T08:28:42Z",
+      "scores": {
+        "mapping": 16,
+        "data_source": 13,
+        "features": 9,
+        "query": 12,
+        "pathfinding": 10,
+        "actions": 5,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [
+        "ACTIONS: no HTTP-executable actions found"
+      ],
+      "diagnostics": {
+        "map_time_s": 4.83,
+        "node_count": 527,
+        "edge_count": 1172,
+        "types_found": 1,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.002,
+        "non_zero_dims": 2,
+        "nodes_with_actions": 1,
+        "http_actions_found": false,
+        "platform_actions": false
+      },
+      "total_score": 75
+    },
+    {
+      "domain": "vrbo.com",
+      "timestamp": "2026-02-18T08:28:48Z",
+      "scores": {
+        "mapping": 13,
+        "data_source": 10,
+        "features": 9,
+        "query": 12,
+        "pathfinding": 10,
+        "actions": 3,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [
+        "DATA: 73% nodes are low confidence",
+        "ACTIONS: no actions discovered on any node",
+        "ACTIONS: no HTTP-executable actions found"
+      ],
+      "diagnostics": {
+        "map_time_s": 24.85,
+        "node_count": 63,
+        "edge_count": 268,
+        "types_found": 3,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.73,
+        "non_zero_dims": 2,
+        "nodes_with_actions": 0,
+        "http_actions_found": false,
+        "platform_actions": false
+      },
+      "total_score": 67
+    },
+    {
+      "domain": "google.com",
+      "timestamp": "2026-02-18T08:29:15Z",
+      "scores": {
+        "mapping": 19,
+        "data_source": 10,
+        "features": 15,
+        "query": 15,
+        "pathfinding": 10,
+        "actions": 13,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [
+        "DATA: 51% nodes are low confidence"
+      ],
+      "diagnostics": {
+        "map_time_s": 4.9,
+        "node_count": 138,
+        "edge_count": 3592,
+        "types_found": 5,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.507,
+        "non_zero_dims": 8,
+        "nodes_with_actions": 10,
+        "http_actions_found": true,
+        "platform_actions": true
+      },
+      "total_score": 92
+    },
+    {
+      "domain": "yelp.com",
+      "timestamp": "2026-02-18T08:29:23Z",
+      "scores": {
+        "mapping": 18,
+        "data_source": 11,
+        "features": 15,
+        "query": 15,
+        "pathfinding": 10,
+        "actions": 12,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [],
+      "diagnostics": {
+        "map_time_s": 12.17,
+        "node_count": 202,
+        "edge_count": 15285,
+        "types_found": 6,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.495,
+        "non_zero_dims": 8,
+        "nodes_with_actions": 6,
+        "http_actions_found": true,
+        "platform_actions": false
+      },
+      "total_score": 91
+    },
+    {
+      "domain": "doordash.com",
+      "timestamp": "2026-02-18T08:29:38Z",
+      "scores": {
+        "mapping": 19,
+        "data_source": 11,
+        "features": 15,
+        "query": 15,
+        "pathfinding": 7,
+        "actions": 7,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [
+        "PATHFIND: no cross-graph path",
+        "ACTIONS: no HTTP-executable actions found"
+      ],
+      "diagnostics": {
+        "map_time_s": 5.1,
+        "node_count": 243,
+        "edge_count": 22660,
+        "types_found": 4,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.412,
+        "non_zero_dims": 7,
+        "nodes_with_actions": 4,
+        "http_actions_found": false,
+        "platform_actions": false
+      },
+      "total_score": 84
+    },
+    {
+      "domain": "ubereats.com",
+      "timestamp": "2026-02-18T08:29:45Z",
+      "scores": {
+        "mapping": 15,
+        "data_source": 15,
+        "features": 13,
+        "query": 15,
+        "pathfinding": 10,
+        "actions": 7,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [
+        "ACTIONS: no HTTP-executable actions found"
+      ],
+      "diagnostics": {
+        "map_time_s": 23.03,
+        "node_count": 10000,
+        "edge_count": 40391,
+        "types_found": 2,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.01,
+        "non_zero_dims": 7,
+        "nodes_with_actions": 10,
+        "http_actions_found": false,
+        "platform_actions": false
+      },
+      "total_score": 85
+    },
+    {
+      "domain": "opentable.com",
+      "timestamp": "2026-02-18T08:30:15Z",
+      "scores": {
+        "mapping": 6,
+        "data_source": 0,
+        "features": 9,
+        "query": 12,
+        "pathfinding": 0,
+        "actions": 3,
+        "live": 0
+      },
+      "errors": [
+        "MAP: zero edges",
+        "PERCEIVE homepage failed: Perceive failed for https://opentable.com: navigation failed: net::ERR_HTTP2_PROTOCOL_ERROR"
+      ],
+      "warnings": [
+        "MAP: slow (45.4s)",
+        "DATA: no high-confidence (JSON-LD) nodes found",
+        "DATA: 100% nodes are low confidence",
+        "ACTIONS: no actions discovered on any node",
+        "ACTIONS: no HTTP-executable actions found"
+      ],
+      "diagnostics": {
+        "map_time_s": 45.44,
+        "node_count": 1,
+        "edge_count": 0,
+        "types_found": 1,
+        "jsonld_detected": false,
+        "patterns_detected": false,
+        "low_confidence_ratio": 1.0,
+        "non_zero_dims": 2,
+        "nodes_with_actions": 0,
+        "http_actions_found": false,
+        "platform_actions": false
+      },
+      "total_score": 30
+    },
+    {
+      "domain": "allrecipes.com",
+      "timestamp": "2026-02-18T08:31:01Z",
+      "scores": {
+        "mapping": 18,
+        "data_source": 15,
+        "features": 15,
+        "query": 15,
+        "pathfinding": 7,
+        "actions": 15,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [
+        "PATHFIND: no path to deep node"
+      ],
+      "diagnostics": {
+        "map_time_s": 10.69,
+        "node_count": 1715,
+        "edge_count": 1269203,
+        "types_found": 5,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.058,
+        "non_zero_dims": 7,
+        "nodes_with_actions": 10,
+        "http_actions_found": true,
+        "platform_actions": true
+      },
+      "total_score": 95
+    },
+    {
+      "domain": "finance.yahoo.com",
+      "timestamp": "2026-02-18T08:31:13Z",
+      "scores": {
+        "mapping": 17,
+        "data_source": 15,
+        "features": 13,
+        "query": 15,
+        "pathfinding": 10,
+        "actions": 5,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [
+        "ACTIONS: no HTTP-executable actions found"
+      ],
+      "diagnostics": {
+        "map_time_s": 5.77,
+        "node_count": 1294,
+        "edge_count": 321610,
+        "types_found": 2,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.077,
+        "non_zero_dims": 7,
+        "nodes_with_actions": 1,
+        "http_actions_found": false,
+        "platform_actions": false
+      },
+      "total_score": 85
+    },
+    {
+      "domain": "marketwatch.com",
+      "timestamp": "2026-02-18T08:31:26Z",
+      "scores": {
+        "mapping": 16,
+        "data_source": 13,
+        "features": 9,
+        "query": 12,
+        "pathfinding": 10,
+        "actions": 7,
+        "live": 9
+      },
+      "errors": [],
+      "warnings": [
+        "ACTIONS: no HTTP-executable actions found"
+      ],
+      "diagnostics": {
+        "map_time_s": 7.05,
+        "node_count": 1053,
+        "edge_count": 2146,
+        "types_found": 1,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.095,
+        "non_zero_dims": 3,
+        "nodes_with_actions": 10,
+        "http_actions_found": false,
+        "platform_actions": false
+      },
+      "total_score": 76
+    },
+    {
+      "domain": "coinmarketcap.com",
+      "timestamp": "2026-02-18T08:31:35Z",
+      "scores": {
+        "mapping": 19,
+        "data_source": 15,
+        "features": 15,
+        "query": 15,
+        "pathfinding": 10,
+        "actions": 10,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [
+        "ACTIONS: no HTTP-executable actions found"
+      ],
+      "diagnostics": {
+        "map_time_s": 6.34,
+        "node_count": 1872,
+        "edge_count": 76616,
+        "types_found": 5,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.053,
+        "non_zero_dims": 9,
+        "nodes_with_actions": 10,
+        "http_actions_found": false,
+        "platform_actions": true
+      },
+      "total_score": 94
+    },
+    {
+      "domain": "bankrate.com",
+      "timestamp": "2026-02-18T08:31:43Z",
+      "scores": {
+        "mapping": 16,
+        "data_source": 15,
+        "features": 15,
+        "query": 15,
+        "pathfinding": 7,
+        "actions": 12,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [
+        "PATHFIND: no cross-graph path"
+      ],
+      "diagnostics": {
+        "map_time_s": 13.17,
+        "node_count": 1002,
+        "edge_count": 27127,
+        "types_found": 3,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.1,
+        "non_zero_dims": 7,
+        "nodes_with_actions": 10,
+        "http_actions_found": true,
+        "platform_actions": false
+      },
+      "total_score": 90
+    },
+    {
+      "domain": "nerdwallet.com",
+      "timestamp": "2026-02-18T08:32:00Z",
+      "scores": {
+        "mapping": 16,
+        "data_source": 15,
+        "features": 15,
+        "query": 15,
+        "pathfinding": 10,
+        "actions": 10,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [
+        "MAP: slow (32.4s)",
+        "ACTIONS: no HTTP-executable actions found"
+      ],
+      "diagnostics": {
+        "map_time_s": 32.41,
+        "node_count": 1379,
+        "edge_count": 37047,
+        "types_found": 5,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.073,
+        "non_zero_dims": 9,
+        "nodes_with_actions": 10,
+        "http_actions_found": false,
+        "platform_actions": true
+      },
+      "total_score": 91
+    },
+    {
+      "domain": "wikipedia.org",
+      "timestamp": "2026-02-18T08:32:36Z",
+      "scores": {
+        "mapping": 17,
+        "data_source": 15,
+        "features": 13,
+        "query": 15,
+        "pathfinding": 10,
+        "actions": 12,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [],
+      "diagnostics": {
+        "map_time_s": 5.32,
+        "node_count": 6650,
+        "edge_count": 283010,
+        "types_found": 3,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.015,
+        "non_zero_dims": 7,
+        "nodes_with_actions": 10,
+        "http_actions_found": true,
+        "platform_actions": false
+      },
+      "total_score": 92
+    },
+    {
+      "domain": "craigslist.org",
+      "timestamp": "2026-02-18T08:32:42Z",
+      "scores": {
+        "mapping": 17,
+        "data_source": 15,
+        "features": 13,
+        "query": 15,
+        "pathfinding": 10,
+        "actions": 10,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [],
+      "diagnostics": {
+        "map_time_s": 5.53,
+        "node_count": 407,
+        "edge_count": 2959,
+        "types_found": 2,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.029,
+        "non_zero_dims": 9,
+        "nodes_with_actions": 5,
+        "http_actions_found": true,
+        "platform_actions": false
+      },
+      "total_score": 90
+    },
+    {
+      "domain": "archive.org",
+      "timestamp": "2026-02-18T08:32:49Z",
+      "scores": {
+        "mapping": 14,
+        "data_source": 15,
+        "features": 9,
+        "query": 12,
+        "pathfinding": 10,
+        "actions": 3,
+        "live": 4
+      },
+      "errors": [
+        "PERCEIVE interior failed: Perceive failed for https://archive.org/sitemap/sitemap_00000.xml.gz: navigation failed: Request timed out."
+      ],
+      "warnings": [
+        "ACTIONS: no actions discovered on any node",
+        "ACTIONS: no HTTP-executable actions found"
+      ],
+      "diagnostics": {
+        "map_time_s": 16.52,
+        "node_count": 1429,
+        "edge_count": 2858,
+        "types_found": 1,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.0,
+        "non_zero_dims": 3,
+        "nodes_with_actions": 0,
+        "http_actions_found": false,
+        "platform_actions": false
+      },
+      "total_score": 67
+    },
+    {
+      "domain": "github.com",
+      "timestamp": "2026-02-18T08:33:37Z",
+      "scores": {
+        "mapping": 18,
+        "data_source": 13,
+        "features": 15,
+        "query": 15,
+        "pathfinding": 7,
+        "actions": 15,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [
+        "PATHFIND: no cross-graph path"
+      ],
+      "diagnostics": {
+        "map_time_s": 11.59,
+        "node_count": 721,
+        "edge_count": 10498,
+        "types_found": 4,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.139,
+        "non_zero_dims": 7,
+        "nodes_with_actions": 10,
+        "http_actions_found": true,
+        "platform_actions": true
+      },
+      "total_score": 93
+    },
+    {
+      "domain": "gitlab.com",
+      "timestamp": "2026-02-18T08:33:51Z",
+      "scores": {
+        "mapping": 19,
+        "data_source": 13,
+        "features": 15,
+        "query": 15,
+        "pathfinding": 10,
+        "actions": 10,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [
+        "ACTIONS: no HTTP-executable actions found"
+      ],
+      "diagnostics": {
+        "map_time_s": 7.92,
+        "node_count": 5087,
+        "edge_count": 17618,
+        "types_found": 7,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.02,
+        "non_zero_dims": 7,
+        "nodes_with_actions": 10,
+        "http_actions_found": false,
+        "platform_actions": true
+      },
+      "total_score": 92
+    },
+    {
+      "domain": "npmjs.com",
+      "timestamp": "2026-02-18T08:34:01Z",
+      "scores": {
+        "mapping": 19,
+        "data_source": 11,
+        "features": 15,
+        "query": 15,
+        "pathfinding": 10,
+        "actions": 5,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [
+        "ACTIONS: no HTTP-executable actions found"
+      ],
+      "diagnostics": {
+        "map_time_s": 6.36,
+        "node_count": 240,
+        "edge_count": 22654,
+        "types_found": 4,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.417,
+        "non_zero_dims": 7,
+        "nodes_with_actions": 2,
+        "http_actions_found": false,
+        "platform_actions": false
+      },
+      "total_score": 85
+    },
+    {
+      "domain": "pypi.org",
+      "timestamp": "2026-02-18T08:34:08Z",
+      "scores": {
+        "mapping": 17,
+        "data_source": 11,
+        "features": 13,
+        "query": 15,
+        "pathfinding": 10,
+        "actions": 5,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [
+        "ACTIONS: no HTTP-executable actions found"
+      ],
+      "diagnostics": {
+        "map_time_s": 3.11,
+        "node_count": 410,
+        "edge_count": 153370,
+        "types_found": 3,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.244,
+        "non_zero_dims": 7,
+        "nodes_with_actions": 1,
+        "http_actions_found": false,
+        "platform_actions": false
+      },
+      "total_score": 81
+    },
+    {
+      "domain": "crates.io",
+      "timestamp": "2026-02-18T08:34:13Z",
+      "scores": {
+        "mapping": 18,
+        "data_source": 13,
+        "features": 15,
+        "query": 15,
+        "pathfinding": 7,
+        "actions": 15,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [
+        "PATHFIND: no cross-graph path"
+      ],
+      "diagnostics": {
+        "map_time_s": 9.0,
+        "node_count": 353,
+        "edge_count": 7618,
+        "types_found": 6,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.283,
+        "non_zero_dims": 7,
+        "nodes_with_actions": 10,
+        "http_actions_found": true,
+        "platform_actions": true
+      },
+      "total_score": 93
+    },
+    {
+      "domain": "imdb.com",
+      "timestamp": "2026-02-18T08:34:24Z",
+      "scores": {
+        "mapping": 14,
+        "data_source": 10,
+        "features": 9,
+        "query": 12,
+        "pathfinding": 10,
+        "actions": 3,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [
+        "DATA: 73% nodes are low confidence",
+        "ACTIONS: no actions discovered on any node",
+        "ACTIONS: no HTTP-executable actions found"
+      ],
+      "diagnostics": {
+        "map_time_s": 14.29,
+        "node_count": 64,
+        "edge_count": 270,
+        "types_found": 3,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.734,
+        "non_zero_dims": 2,
+        "nodes_with_actions": 0,
+        "http_actions_found": false,
+        "platform_actions": false
+      },
+      "total_score": 68
+    },
+    {
+      "domain": "rottentomatoes.com",
+      "timestamp": "2026-02-18T08:34:39Z",
+      "scores": {
+        "mapping": 16,
+        "data_source": 13,
+        "features": 9,
+        "query": 12,
+        "pathfinding": 10,
+        "actions": 3,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [
+        "ACTIONS: no actions discovered on any node",
+        "ACTIONS: no HTTP-executable actions found"
+      ],
+      "diagnostics": {
+        "map_time_s": 5.61,
+        "node_count": 347,
+        "edge_count": 1162,
+        "types_found": 1,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.288,
+        "non_zero_dims": 2,
+        "nodes_with_actions": 0,
+        "http_actions_found": false,
+        "platform_actions": false
+      },
+      "total_score": 73
+    },
+    {
+      "domain": "weather.com",
+      "timestamp": "2026-02-18T08:34:48Z",
+      "scores": {
+        "mapping": 17,
+        "data_source": 13,
+        "features": 13,
+        "query": 15,
+        "pathfinding": 10,
+        "actions": 5,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [
+        "ACTIONS: no HTTP-executable actions found"
+      ],
+      "diagnostics": {
+        "map_time_s": 4.8,
+        "node_count": 754,
+        "edge_count": 2536,
+        "types_found": 3,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.133,
+        "non_zero_dims": 7,
+        "nodes_with_actions": 1,
+        "http_actions_found": false,
+        "platform_actions": false
+      },
+      "total_score": 83
+    },
+    {
+      "domain": "zillow.com",
+      "timestamp": "2026-02-18T08:34:55Z",
+      "scores": {
+        "mapping": 15,
+        "data_source": 13,
+        "features": 9,
+        "query": 12,
+        "pathfinding": 10,
+        "actions": 3,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [
+        "ACTIONS: no actions discovered on any node",
+        "ACTIONS: no HTTP-executable actions found"
+      ],
+      "diagnostics": {
+        "map_time_s": 9.72,
+        "node_count": 215,
+        "edge_count": 448,
+        "types_found": 1,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.088,
+        "non_zero_dims": 3,
+        "nodes_with_actions": 0,
+        "http_actions_found": false,
+        "platform_actions": false
+      },
+      "total_score": 72
+    },
+    {
+      "domain": "indeed.com",
+      "timestamp": "2026-02-18T08:35:06Z",
+      "scores": {
+        "mapping": 18,
+        "data_source": 10,
+        "features": 13,
+        "query": 15,
+        "pathfinding": 10,
+        "actions": 5,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [
+        "DATA: 78% nodes are low confidence",
+        "ACTIONS: no HTTP-executable actions found"
+      ],
+      "diagnostics": {
+        "map_time_s": 2.64,
+        "node_count": 102,
+        "edge_count": 577,
+        "types_found": 3,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.784,
+        "non_zero_dims": 7,
+        "nodes_with_actions": 1,
+        "http_actions_found": false,
+        "platform_actions": false
+      },
+      "total_score": 81
+    },
+    {
+      "domain": "healthline.com",
+      "timestamp": "2026-02-18T08:35:10Z",
+      "scores": {
+        "mapping": 18,
+        "data_source": 15,
+        "features": 15,
+        "query": 15,
+        "pathfinding": 10,
+        "actions": 15,
+        "live": 10
+      },
+      "errors": [],
+      "warnings": [],
+      "diagnostics": {
+        "map_time_s": 10.48,
+        "node_count": 1081,
+        "edge_count": 44055,
+        "types_found": 5,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.093,
+        "non_zero_dims": 9,
+        "nodes_with_actions": 10,
+        "http_actions_found": true,
+        "platform_actions": true
+      },
+      "total_score": 98
+    },
+    {
+      "domain": "pinterest.com",
+      "timestamp": "2026-02-18T08:35:24Z",
+      "scores": {
+        "mapping": 17,
+        "data_source": 13,
+        "features": 11,
+        "query": 15,
+        "pathfinding": 10,
+        "actions": 3,
+        "live": 9
+      },
+      "errors": [],
+      "warnings": [
+        "ACTIONS: no actions discovered on any node",
+        "ACTIONS: no HTTP-executable actions found"
+      ],
+      "diagnostics": {
+        "map_time_s": 6.22,
+        "node_count": 641,
+        "edge_count": 4186,
+        "types_found": 2,
+        "jsonld_detected": true,
+        "patterns_detected": true,
+        "low_confidence_ratio": 0.156,
+        "non_zero_dims": 4,
+        "nodes_with_actions": 0,
+        "http_actions_found": false,
+        "platform_actions": false
+      },
+      "total_score": 78
+    }
+  ]
+}
