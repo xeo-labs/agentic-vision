@@ -5,6 +5,7 @@
 
 use crate::acquisition::http_session::HttpSession;
 use crate::cartography::mapper::{MapRequest, Mapper};
+use crate::events::{CortexEvent, EventBus};
 use crate::live::perceive as perceive_handler;
 use crate::map::types::{
     FeatureRange, NodeFlags, NodeQuery, PageType, PathConstraints, PathMinimize, SiteMap,
@@ -43,6 +44,9 @@ pub struct SharedState {
     pub sessions: Arc<RwLock<HashMap<String, HttpSession>>>,
     pub mapper: Option<Arc<Mapper>>,
     pub renderer: Option<Arc<dyn Renderer>>,
+    /// Global event bus for real-time telemetry. All components emit events here;
+    /// consumers (SSE, MCP, dashboard, logs) subscribe independently.
+    pub event_bus: Arc<EventBus>,
 }
 
 /// The Cortex socket server.
@@ -61,6 +65,8 @@ pub struct Server {
     mapper: Option<Arc<Mapper>>,
     /// Renderer for PERCEIVE requests (None if not available).
     renderer: Option<Arc<dyn Renderer>>,
+    /// Global event bus for real-time telemetry.
+    event_bus: Arc<EventBus>,
 }
 
 impl Server {
@@ -75,6 +81,7 @@ impl Server {
             sessions: Arc::new(RwLock::new(HashMap::new())),
             mapper: None,
             renderer: None,
+            event_bus: Arc::new(EventBus::new(512)),
         }
     }
 
@@ -102,6 +109,7 @@ impl Server {
             sessions: Arc::clone(&self.sessions),
             mapper: self.mapper.clone(),
             renderer: self.renderer.clone(),
+            event_bus: Arc::clone(&self.event_bus),
         })
     }
 
@@ -126,6 +134,7 @@ impl Server {
             sessions: Arc::clone(&self.sessions),
             mapper: self.mapper.clone(),
             renderer: self.renderer.clone(),
+            event_bus: Arc::clone(&self.event_bus),
         });
 
         loop {
@@ -206,6 +215,12 @@ async fn handle_connection(stream: tokio::net::UnixStream, state: Arc<SharedStat
     let (reader, mut writer) = stream.into_split();
     let mut reader = BufReader::new(reader);
     let mut line = String::new();
+
+    // Emit agent connected event
+    state.event_bus.emit(CortexEvent::AgentConnected {
+        agent_type: "socket".to_string(),
+        agent_name: None,
+    });
 
     // Rate limiting: track requests per second
     let mut rate_window_start = Instant::now();
@@ -323,6 +338,11 @@ async fn handle_connection(stream: tokio::net::UnixStream, state: Arc<SharedStat
             }
         }
     }
+
+    // Emit agent disconnected event
+    state.event_bus.emit(CortexEvent::AgentDisconnected {
+        agent_type: "socket".to_string(),
+    });
 
     Ok(())
 }
@@ -452,13 +472,27 @@ async fn handle_map(req: &protocol::Request, state: Arc<SharedState>) -> String 
     let req_id = req.id.clone();
     let maps = Arc::clone(&state.maps);
 
+    // Create a progress channel for real-time telemetry
+    let (ptx, prx) = crate::progress::channel();
     let map_request = MapRequest {
         domain: domain.clone(),
         max_nodes,
         max_render,
         timeout_ms,
         respect_robots,
+        progress_tx: Some(ptx.clone()),
     };
+
+    // Emit MapStarted event
+    state.event_bus.emit(CortexEvent::MapStarted {
+        domain: domain.clone(),
+        timestamp: crate::events::now_timestamp(),
+    });
+
+    // Spawn event bridge: translates ProgressEvents → CortexEvents on the bus
+    let bridge_bus = Arc::clone(&state.event_bus);
+    let bridge_domain = domain.clone();
+    let _bridge = tokio::spawn(progress_event_bridge(prx, bridge_bus, bridge_domain));
 
     info!("MAP request: domain={domain}, max_nodes={max_nodes}, max_render={max_render}");
 
@@ -483,11 +517,30 @@ async fn handle_map(req: &protocol::Request, state: Arc<SharedState>) -> String 
         }
     };
 
+    let map_start = Instant::now();
     match result {
         Ok(Ok(sitemap)) => {
             let node_count = sitemap.nodes.len();
             let edge_count = sitemap.edges.len();
-            info!("MAP complete: domain={domain}, nodes={node_count}, edges={edge_count}");
+            let action_count = sitemap.actions.len();
+            info!("MAP complete: domain={domain}, nodes={node_count}, edges={edge_count}, actions={action_count}");
+
+            // Count distinct page types
+            let mut page_type_set = std::collections::HashSet::new();
+            for node in &sitemap.nodes {
+                page_type_set.insert(node.page_type);
+            }
+
+            // Emit MapComplete event
+            state.event_bus.emit(CortexEvent::MapComplete {
+                domain: domain.clone(),
+                node_count,
+                edge_count,
+                page_types: page_type_set.len(),
+                total_ms: map_start.elapsed().as_millis() as u64,
+                browser_contexts_used: 0,
+                jsonld_coverage: 0.0,
+            });
 
             // Cache the map
             let maps_lock = Arc::clone(&state.maps);
@@ -508,10 +561,20 @@ async fn handle_map(req: &protocol::Request, state: Arc<SharedState>) -> String 
         }
         Ok(Err(e)) => {
             warn!("MAP failed for {domain}: {e}, trying HTTP fallback");
+            state.event_bus.emit(CortexEvent::MapFailed {
+                domain: domain.clone(),
+                error: e.to_string(),
+                elapsed_ms: map_start.elapsed().as_millis() as u64,
+            });
             build_http_fallback_map(domain.clone(), req_id, maps, false).await
         }
         Err(_) => {
             warn!("MAP timed out for {domain} after {timeout_ms}ms, building fallback map");
+            state.event_bus.emit(CortexEvent::MapFailed {
+                domain: domain.clone(),
+                error: format!("Timed out after {timeout_ms}ms"),
+                elapsed_ms: map_start.elapsed().as_millis() as u64,
+            });
             build_http_fallback_map(domain.clone(), req_id, maps, true).await
         }
     }
@@ -676,7 +739,7 @@ async fn handle_query(req: &protocol::Request, state: Arc<SharedState>) -> Strin
         .unwrap_or("filter");
 
     if mode == "nearest" {
-        return handle_nearest(req, sitemap);
+        return handle_nearest(req, sitemap, &state);
     }
 
     // Parse page_types
@@ -799,12 +862,20 @@ async fn handle_query(req: &protocol::Request, state: Arc<SharedState>) -> Strin
         limit,
     };
 
+    let query_start = Instant::now();
     let results = query::execute(sitemap, &node_query);
+    let elapsed_us = query_start.elapsed().as_micros() as u64;
+    state.event_bus.emit(CortexEvent::QueryExecuted {
+        domain: domain.to_string(),
+        query_type: "filter".to_string(),
+        results_count: results.len(),
+        elapsed_us,
+    });
     format_node_matches(&req.id, &results)
 }
 
 /// Handle a nearest-neighbor query.
-fn handle_nearest(req: &protocol::Request, sitemap: &SiteMap) -> String {
+fn handle_nearest(req: &protocol::Request, sitemap: &SiteMap, state: &Arc<SharedState>) -> String {
     let goal_vector = match req.params.get("goal_vector").and_then(|v| v.as_array()) {
         Some(arr) => {
             let vec: Vec<f32> = arr
@@ -840,7 +911,24 @@ fn handle_nearest(req: &protocol::Request, sitemap: &SiteMap) -> String {
         .and_then(|v| v.as_u64())
         .unwrap_or(10) as usize;
 
+    let query_start = Instant::now();
     let results = sitemap.nearest(&goal_vector, k);
+    let elapsed_us = query_start.elapsed().as_micros() as u64;
+
+    // Extract domain from the first node's URL if available
+    let domain = sitemap
+        .urls
+        .first()
+        .and_then(|u| url::Url::parse(u).ok())
+        .and_then(|u| u.host_str().map(|h| h.to_string()))
+        .unwrap_or_default();
+    state.event_bus.emit(CortexEvent::QueryExecuted {
+        domain,
+        query_type: "nearest".to_string(),
+        results_count: results.len(),
+        elapsed_us,
+    });
+
     format_node_matches(&req.id, &results)
 }
 
@@ -948,8 +1036,15 @@ async fn handle_pathfind(req: &protocol::Request, state: Arc<SharedState>) -> St
         minimize,
     };
 
+    let pf_start = Instant::now();
     match pathfinder::find_path(sitemap, from_node, to_node, &constraints) {
         Some(path) => {
+            state.event_bus.emit(CortexEvent::QueryExecuted {
+                domain: domain.to_string(),
+                query_type: "pathfind".to_string(),
+                results_count: path.hops as usize,
+                elapsed_us: pf_start.elapsed().as_micros() as u64,
+            });
             let actions: Vec<serde_json::Value> = path
                 .required_actions
                 .iter()
@@ -1078,6 +1173,12 @@ async fn handle_auth(req: &protocol::Request, state: Arc<SharedState>) -> String
         .and_then(|v| v.as_str())
         .unwrap_or("bearer");
 
+    // Emit AuthStarted event
+    state.event_bus.emit(CortexEvent::AuthStarted {
+        domain: domain.clone(),
+        method: auth_type.to_string(),
+    });
+
     let session = match auth_type {
         "api_key" => {
             let key = match req.params.get("key").and_then(|v| v.as_str()) {
@@ -1137,6 +1238,11 @@ async fn handle_auth(req: &protocol::Request, state: Arc<SharedState>) -> String
             {
                 Ok(s) => s,
                 Err(e) => {
+                    state.event_bus.emit(CortexEvent::AuthComplete {
+                        domain: domain.clone(),
+                        method: "password".to_string(),
+                        success: false,
+                    });
                     return protocol::format_error(
                         &req.id,
                         "E_AUTH_FAILED",
@@ -1160,6 +1266,13 @@ async fn handle_auth(req: &protocol::Request, state: Arc<SharedState>) -> String
     sessions.insert(session_id.clone(), session);
     drop(sessions);
 
+    // Emit AuthComplete event
+    state.event_bus.emit(CortexEvent::AuthComplete {
+        domain: domain.clone(),
+        method: auth_type.to_string(),
+        success: true,
+    });
+
     protocol::format_response(
         &req.id,
         serde_json::json!({
@@ -1168,6 +1281,76 @@ async fn handle_auth(req: &protocol::Request, state: Arc<SharedState>) -> String
             "auth_type": auth_type,
         }),
     )
+}
+
+/// Bridge that receives low-level `ProgressEvent`s from the mapper and translates
+/// them into high-level `CortexEvent`s on the event bus.
+///
+/// Runs as a background task for the duration of a mapping operation.
+async fn progress_event_bridge(
+    mut rx: crate::progress::ProgressReceiver,
+    event_bus: Arc<EventBus>,
+    domain: String,
+) {
+    use crate::progress::{MappingLayer, ProgressEventKind};
+
+    while let Ok(progress) = rx.recv().await {
+        match progress.event {
+            ProgressEventKind::LayerCompleted {
+                layer,
+                message: _,
+                duration_ms,
+            } => {
+                let (layer_num, layer_name) = match layer {
+                    MappingLayer::L0Metadata => (0, "Metadata"),
+                    MappingLayer::L1HttpFetch => (1, "Structured Data"),
+                    MappingLayer::L15Pattern => (1, "Pattern Engine"),
+                    MappingLayer::L2ApiDiscovery => (2, "API Discovery"),
+                    MappingLayer::L25Actions => (2, "Actions"),
+                    MappingLayer::L3Browser => (3, "Browser Fallback"),
+                    MappingLayer::BuildGraph => (4, "Build Graph"),
+                };
+                event_bus.emit(CortexEvent::LayerComplete {
+                    domain: domain.clone(),
+                    layer: layer_num,
+                    layer_name: layer_name.to_string(),
+                    nodes_added: 0, // mapper doesn't emit per-layer node counts yet
+                    features_filled: 0,
+                    elapsed_ms: duration_ms,
+                });
+            }
+            ProgressEventKind::MappingProgress {
+                urls_discovered,
+                pages_fetched,
+                ..
+            } => {
+                // After Layer 0, emit SitemapDiscovered
+                if pages_fetched == 0 && urls_discovered > 0 {
+                    event_bus.emit(CortexEvent::SitemapDiscovered {
+                        domain: domain.clone(),
+                        url_count: urls_discovered as usize,
+                        elapsed_ms: 0, // approximate
+                    });
+                }
+                // After Layer 1, emit StructuredDataExtracted
+                if pages_fetched > 0 {
+                    event_bus.emit(CortexEvent::StructuredDataExtracted {
+                        domain: domain.clone(),
+                        pages_fetched: pages_fetched as usize,
+                        jsonld_found: 0, // TODO: wire through when available
+                        opengraph_found: 0,
+                        patterns_used: 0,
+                        elapsed_ms: 0,
+                    });
+                }
+            }
+            ProgressEventKind::MappingComplete { .. } => {
+                // MapComplete is emitted by handle_map directly with richer data
+                break;
+            }
+            _ => {} // LayerStarted, LayerSkipped, UrlProcessed, Warning — skip for now
+        }
+    }
 }
 
 /// Simple regex-free link extraction from HTML for fallback code.

@@ -48,18 +48,21 @@ pub async fn run(
     }
 
     // First-run auto-setup: install Chromium and start daemon if needed
-    if !output::is_quiet() {
-        eprintln!("  Mapping {domain}...");
+    let show_progress = !output::is_quiet() && !output::is_json();
+
+    if show_progress {
+        eprintln!();
+        eprintln!("  {} Mapping {domain}", s.bold("CORTEX —"));
         eprintln!();
     }
 
     let needs_setup = auto_setup_if_needed().await?;
-    if needs_setup && !output::is_quiet() {
+    if needs_setup && show_progress {
         eprintln!();
     }
 
     // Connect to the daemon socket and send a MAP request
-    use tokio::io::{AsyncReadExt, AsyncWriteExt};
+    use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
     use tokio::net::UnixStream;
 
     let socket_path = "/tmp/cortex.sock";
@@ -80,6 +83,14 @@ pub async fn run(
         }
     };
 
+    // Spawn a background SSE listener for live progress (best effort)
+    let sse_domain = domain.to_string();
+    let sse_handle = if show_progress {
+        Some(tokio::spawn(stream_progress_from_sse(sse_domain)))
+    } else {
+        None
+    };
+
     let req = serde_json::json!({
         "id": format!("map-{}", std::process::id()),
         "method": "map",
@@ -98,10 +109,19 @@ pub async fn run(
         .context("failed to send MAP request")?;
 
     // Read response (with generous timeout for mapping)
-    let mut buf = vec![0u8; 1024 * 1024]; // 1MB buffer
+    let (reader, _writer) = stream.into_split();
+    let mut reader = BufReader::new(reader);
+    let mut line = String::new();
     let response_timeout = std::time::Duration::from_millis(timeout + 30000);
-    let n = match tokio::time::timeout(response_timeout, stream.read(&mut buf)).await {
-        Ok(Ok(n)) if n > 0 => n,
+    let read_result = tokio::time::timeout(response_timeout, reader.read_line(&mut line)).await;
+
+    // Cancel the SSE listener
+    if let Some(handle) = sse_handle {
+        handle.abort();
+    }
+
+    match read_result {
+        Ok(Ok(n)) if n > 0 => {} // Data received into `line`
         Ok(Ok(_)) => {
             if !output::is_quiet() {
                 eprintln!("  Connection closed by server.");
@@ -123,7 +143,7 @@ pub async fn run(
     };
 
     let response: serde_json::Value =
-        serde_json::from_slice(&buf[..n]).context("failed to parse response")?;
+        serde_json::from_str(line.trim()).context("failed to parse response")?;
 
     if let Some(error) = response.get("error") {
         if output::is_json() {
@@ -142,32 +162,38 @@ pub async fn run(
     let node_count = result
         .get("node_count")
         .and_then(|v| v.as_u64())
-        .unwrap_or(0) as u32;
+        .unwrap_or(0);
     let edge_count = result
         .get("edge_count")
         .and_then(|v| v.as_u64())
-        .unwrap_or(0) as u32;
+        .unwrap_or(0);
 
     if output::is_json() {
         output::print_json(&result);
         return Ok(());
     }
 
-    if !output::is_quiet() {
+    if show_progress {
         let elapsed = start.elapsed();
-        eprintln!("  Map complete in {:.1}s", elapsed.as_secs_f64());
         eprintln!();
-        eprintln!("  {}", s.bold(domain));
-        eprintln!("  Nodes:     {node_count}");
-        eprintln!("  Edges:     {edge_count}");
+        eprintln!("  {} Mapped {domain}", s.ok_sym());
+        eprintln!(
+            "    {} nodes  ·  {} edges  ·  {:.1}s",
+            format_count(node_count),
+            format_count(edge_count),
+            elapsed.as_secs_f64()
+        );
         eprintln!();
         eprintln!("  Query with: cortex query {domain} --type product_detail");
+
+        // Show dashboard hint if HTTP is available
+        eprintln!("  Dashboard:  http://localhost:7700/dashboard");
     }
 
     // Cache the map binary if available
     if let Some(map_path) = result.get("map_path").and_then(|v| v.as_str()) {
-        if !output::is_quiet() {
-            eprintln!("  Cached at: {map_path}");
+        if show_progress {
+            eprintln!("  Cached at:  {map_path}");
         }
     }
 
@@ -311,4 +337,156 @@ async fn auto_setup_if_needed() -> Result<bool> {
     }
 
     Ok(did_something)
+}
+
+/// Format a number with comma separators for display.
+fn format_count(n: u64) -> String {
+    if n < 1_000 {
+        return n.to_string();
+    }
+    let s = n.to_string();
+    let mut result = String::new();
+    for (i, ch) in s.chars().rev().enumerate() {
+        if i > 0 && i % 3 == 0 {
+            result.push(',');
+        }
+        result.push(ch);
+    }
+    result.chars().rev().collect()
+}
+
+/// Subscribe to SSE events and print live mapping progress.
+///
+/// Best-effort: if the REST API is not running, this silently returns.
+/// Runs concurrently with the socket MAP request. Uses a raw TCP
+/// connection to avoid additional crate dependencies for streaming.
+async fn stream_progress_from_sse(domain: String) {
+    use tokio::io::{AsyncBufReadExt, AsyncWriteExt};
+    use tokio::net::TcpStream;
+
+    // Connect to the REST API
+    let mut stream = match TcpStream::connect("127.0.0.1:7700").await {
+        Ok(s) => s,
+        Err(_) => return, // REST API not available — skip live progress
+    };
+
+    // Send HTTP GET request for SSE
+    let request = format!(
+        "GET /api/v1/events?domain={domain} HTTP/1.1\r\n\
+         Host: 127.0.0.1:7700\r\n\
+         Accept: text/event-stream\r\n\
+         Connection: keep-alive\r\n\
+         \r\n"
+    );
+    if stream.write_all(request.as_bytes()).await.is_err() {
+        return;
+    }
+
+    let s = Styled::new();
+    let reader = tokio::io::BufReader::new(stream);
+    let mut lines = reader.lines();
+
+    // Skip HTTP response headers
+    let mut past_headers = false;
+    while let Ok(Some(line)) = lines.next_line().await {
+        if line.is_empty() {
+            past_headers = true;
+            break;
+        }
+    }
+    if !past_headers {
+        return;
+    }
+
+    // Read SSE data lines
+    while let Ok(Some(line)) = lines.next_line().await {
+        let trimmed = line.trim();
+        if !trimmed.starts_with("data:") {
+            continue;
+        }
+        let json_str = trimmed.trim_start_matches("data:").trim();
+        if json_str.is_empty() {
+            continue;
+        }
+
+        let event: serde_json::Value = match serde_json::from_str(json_str) {
+            Ok(v) => v,
+            Err(_) => continue,
+        };
+
+        let event_type = event.get("type").and_then(|v| v.as_str()).unwrap_or("");
+        match event_type {
+            "SitemapDiscovered" => {
+                let count = event.get("url_count").and_then(|v| v.as_u64()).unwrap_or(0);
+                let ms = event
+                    .get("elapsed_ms")
+                    .and_then(|v| v.as_u64())
+                    .unwrap_or(0);
+                eprintln!(
+                    "  Layer 0  {:<22} {} URLs discovered {:>20} {}",
+                    "Metadata",
+                    format_count(count),
+                    format!("{:.1}s", ms as f64 / 1000.0),
+                    s.ok_sym(),
+                );
+            }
+            "StructuredDataExtracted" => {
+                let pages = event
+                    .get("pages_fetched")
+                    .and_then(|v| v.as_u64())
+                    .unwrap_or(0);
+                let jsonld = event
+                    .get("jsonld_found")
+                    .and_then(|v| v.as_u64())
+                    .unwrap_or(0);
+                let patterns = event
+                    .get("patterns_used")
+                    .and_then(|v| v.as_u64())
+                    .unwrap_or(0);
+                let ms = event
+                    .get("elapsed_ms")
+                    .and_then(|v| v.as_u64())
+                    .unwrap_or(0);
+                let pct = if pages > 0 { (jsonld * 100) / pages } else { 0 };
+                eprintln!(
+                    "  Layer 1  {:<22} {} pages, {} JSON-LD ({}%) {:>15} {}",
+                    "Structured Data",
+                    pages,
+                    jsonld,
+                    pct,
+                    format!("{:.1}s", ms as f64 / 1000.0),
+                    s.ok_sym(),
+                );
+                if patterns > 0 {
+                    eprintln!(
+                        "  Layer 1½ {:<22} {} pages enriched via CSS selectors",
+                        "Pattern Engine", patterns,
+                    );
+                }
+            }
+            "LayerComplete" => {
+                let layer = event.get("layer").and_then(|v| v.as_u64()).unwrap_or(0);
+                let name = event
+                    .get("layer_name")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("?");
+                let ms = event
+                    .get("elapsed_ms")
+                    .and_then(|v| v.as_u64())
+                    .unwrap_or(0);
+                eprintln!(
+                    "  Layer {}  {:<22} {:>36} {}",
+                    layer,
+                    name,
+                    format!("{:.1}s", ms as f64 / 1000.0),
+                    s.ok_sym(),
+                );
+            }
+            "MapComplete" | "MapFailed" => {
+                // Stop streaming — the final summary comes from the socket response
+                break;
+            }
+            _ => {} // Skip other event types
+        }
+    }
 }

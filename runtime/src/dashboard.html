@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Cortex Dashboard</title>
+  <style>
+    /* Dark theme, monospace, minimal — looks like a mission control terminal */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #0a0a0f; color: #c8c8d0;
+      font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+      font-size: 13px; overflow: hidden; height: 100vh;
+    }
+
+    .header {
+      background: #12121a; border-bottom: 1px solid #2a2a3a;
+      padding: 12px 20px; display: flex; justify-content: space-between; align-items: center;
+    }
+    .header .title { font-size: 16px; font-weight: 700; color: #7c6bf0; }
+    .header .status { display: flex; gap: 24px; }
+    .header .status span { color: #808090; }
+    .header .status .value { color: #e0e0e8; }
+    .header .status .dot {
+      display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+      background: #4ade80; margin-right: 6px;
+    }
+
+    .main { display: grid; grid-template-columns: 1fr 1fr 300px; height: calc(100vh - 100px); }
+
+    .panel { border-right: 1px solid #1a1a2a; padding: 16px; overflow-y: auto; }
+    .panel-title {
+      font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px;
+      color: #606070; margin-bottom: 12px;
+    }
+
+    .event {
+      padding: 6px 0; border-bottom: 1px solid #14141e; display: grid;
+      grid-template-columns: 70px 50px 160px 1fr; gap: 8px;
+    }
+    .event .time { color: #505060; }
+    .event .op { font-weight: 600; }
+    .event .op.map { color: #7c6bf0; }
+    .event .op.act { color: #f0a030; }
+    .event .op.query { color: #30d0f0; }
+    .event .op.auth { color: #f06080; }
+    .event .op.sys { color: #4ade80; }
+    .event .domain { color: #a0a0b0; }
+    .event .detail { color: #c8c8d0; }
+    .event .detail .success { color: #4ade80; }
+    .event .detail .error { color: #f04040; }
+
+    .progress-card {
+      background: #14141e; border: 1px solid #2a2a3a; border-radius: 8px;
+      padding: 16px; margin-bottom: 12px;
+    }
+    .progress-card .card-title { color: #e0e0e8; font-weight: 600; margin-bottom: 10px; }
+    .progress-bar {
+      height: 4px; background: #1a1a2a; border-radius: 2px; margin: 6px 0;
+    }
+    .progress-bar .fill {
+      height: 100%; background: #7c6bf0; border-radius: 2px; transition: width 0.3s;
+    }
+    .progress-label { display: flex; justify-content: space-between; color: #606070; font-size: 11px; }
+
+    .stat-row {
+      display: flex; justify-content: space-between; padding: 8px 0;
+      border-bottom: 1px solid #14141e;
+    }
+    .stat-row .label { color: #606070; }
+    .stat-row .value { color: #e0e0e8; }
+
+    .agent-row { padding: 8px 0; border-bottom: 1px solid #14141e; }
+    .agent-row .name { color: #e0e0e8; }
+    .agent-row .type { color: #7c6bf0; font-size: 11px; }
+    .agent-row .since { color: #505060; font-size: 11px; }
+
+    .footer {
+      background: #12121a; border-top: 1px solid #2a2a3a;
+      padding: 10px 20px; display: flex; gap: 32px;
+    }
+    .footer .stat { color: #606070; }
+    .footer .stat .num { color: #e0e0e8; font-weight: 600; }
+
+    .empty { color: #404050; padding: 20px; text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <span class="title">CORTEX</span>
+    <div class="status">
+      <span><span class="dot"></span>Runtime: <span class="value" id="runtime-status">running</span></span>
+      <span>Maps: <span class="value" id="maps-count">0</span></span>
+      <span>Agents: <span class="value" id="agents-count">0</span></span>
+      <span>Uptime: <span class="value" id="uptime">0s</span></span>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="panel" id="activity-panel">
+      <div class="panel-title">Live Activity</div>
+      <div id="activity-feed"></div>
+    </div>
+
+    <div class="panel" id="operations-panel">
+      <div class="panel-title">Current Operations</div>
+      <div id="operations"></div>
+    </div>
+
+    <div class="panel" id="status-panel">
+      <div class="panel-title">Connected Agents</div>
+      <div id="agents-list"></div>
+      <div class="panel-title" style="margin-top: 20px;">Cached Maps</div>
+      <div id="maps-list"></div>
+      <div class="panel-title" style="margin-top: 20px;">System</div>
+      <div id="system-stats"></div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <span class="stat">Maps today: <span class="num" id="maps-today">0</span></span>
+    <span class="stat">Actions: <span class="num" id="actions-today">0</span></span>
+    <span class="stat">Queries: <span class="num" id="queries-today">0</span></span>
+    <span class="stat">Avg map: <span class="num" id="avg-map-time">&mdash;</span></span>
+    <span class="stat">Browser: <span class="num" id="browser-usage">0%</span></span>
+  </div>
+
+  <script>
+    // Connect to SSE event stream
+    const evtSource = new EventSource('/api/v1/events');
+
+    const state = {
+      events: [],
+      operations: {},
+      agents: [],
+      maps: [],
+      stats: { maps: 0, actions: 0, queries: 0, mapTimes: [], browserUses: 0, totalMaps: 0 }
+    };
+
+    evtSource.onmessage = (e) => {
+      const event = JSON.parse(e.data);
+      handleEvent(event);
+    };
+
+    evtSource.onerror = () => {
+      document.getElementById('runtime-status').textContent = 'disconnected';
+      document.querySelector('.dot').style.background = '#f04040';
+    };
+
+    evtSource.onopen = () => {
+      document.getElementById('runtime-status').textContent = 'running';
+      document.querySelector('.dot').style.background = '#4ade80';
+    };
+
+    // Poll status every 5 seconds for cached maps and system info
+    setInterval(async () => {
+      try {
+        const res = await fetch('/api/v1/status');
+        const status = await res.json();
+        updateStatus(status);
+      } catch(e) {}
+    }, 5000);
+
+    // Fetch initial status
+    fetch('/api/v1/status').then(r => r.json()).then(updateStatus).catch(() => {});
+
+    function handleEvent(event) {
+      addActivityEntry(event);
+
+      switch(event.type) {
+        case 'MapStarted':
+          state.operations[event.domain] = { domain: event.domain, layers: {}, started: Date.now() };
+          renderOperations();
+          break;
+
+        case 'SitemapDiscovered':
+          if (state.operations[event.domain]) {
+            state.operations[event.domain].urls = event.url_count;
+            state.operations[event.domain].layers[0] = { name: 'Metadata', progress: 1.0, detail: event.url_count.toLocaleString() + ' URLs' };
+          }
+          renderOperations();
+          break;
+
+        case 'StructuredDataExtracted':
+          if (state.operations[event.domain]) {
+            const op = state.operations[event.domain];
+            op.layers[1] = { name: 'Structured Data', progress: 1.0, detail: event.jsonld_found + '/' + event.pages_fetched + ' JSON-LD' };
+            op.jsonldCoverage = event.pages_fetched > 0 ? (event.jsonld_found / event.pages_fetched) : 0;
+          }
+          renderOperations();
+          break;
+
+        case 'LayerComplete':
+          if (state.operations[event.domain]) {
+            state.operations[event.domain].layers[event.layer] = {
+              name: event.layer_name, progress: 1.0,
+              detail: event.nodes_added + ' nodes (' + event.elapsed_ms + 'ms)'
+            };
+          }
+          renderOperations();
+          break;
+
+        case 'MapComplete':
+          delete state.operations[event.domain];
+          state.stats.maps++;
+          state.stats.mapTimes.push(event.total_ms);
+          state.stats.totalMaps++;
+          if (event.browser_contexts_used > 0) state.stats.browserUses++;
+          updateFooter();
+          renderOperations();
+          break;
+
+        case 'MapFailed':
+          delete state.operations[event.domain];
+          renderOperations();
+          break;
+
+        case 'ActionComplete':
+          state.stats.actions++;
+          updateFooter();
+          break;
+
+        case 'QueryExecuted':
+          state.stats.queries++;
+          updateFooter();
+          break;
+
+        case 'AgentConnected':
+          state.agents.push({ type: event.agent_type, name: event.agent_name, since: new Date() });
+          document.getElementById('agents-count').textContent = state.agents.length;
+          renderAgents();
+          break;
+
+        case 'AgentDisconnected':
+          state.agents = state.agents.filter(a => a.type !== event.agent_type);
+          document.getElementById('agents-count').textContent = state.agents.length;
+          renderAgents();
+          break;
+      }
+    }
+
+    function addActivityEntry(event) {
+      const feed = document.getElementById('activity-feed');
+      const entry = document.createElement('div');
+      entry.className = 'event';
+
+      const time = new Date().toLocaleTimeString('en-US', { hour12: false });
+      const { op, opClass, domain, detail } = formatEvent(event);
+
+      entry.innerHTML =
+        '<span class="time">' + time + '</span>' +
+        '<span class="op ' + opClass + '">' + op + '</span>' +
+        '<span class="domain">' + domain + '</span>' +
+        '<span class="detail">' + detail + '</span>';
+
+      feed.insertBefore(entry, feed.firstChild);
+
+      // Keep max 200 entries
+      while (feed.children.length > 200) feed.removeChild(feed.lastChild);
+    }
+
+    function formatEvent(event) {
+      switch(event.type) {
+        case 'MapStarted': return { op: 'MAP', opClass: 'map', domain: event.domain, detail: 'Starting...' };
+        case 'SitemapDiscovered': return { op: 'MAP', opClass: 'map', domain: event.domain, detail: 'Sitemap: ' + event.url_count.toLocaleString() + ' URLs (' + event.elapsed_ms + 'ms)' };
+        case 'StructuredDataExtracted': return { op: 'MAP', opClass: 'map', domain: event.domain, detail: 'Layer 1: ' + event.pages_fetched + ' pages, ' + event.jsonld_found + ' JSON-LD, ' + event.patterns_used + ' patterns (' + event.elapsed_ms + 'ms)' };
+        case 'LayerComplete': return { op: 'MAP', opClass: 'map', domain: event.domain, detail: 'Layer ' + event.layer + ' ' + event.layer_name + ': ' + event.nodes_added + ' nodes (' + event.elapsed_ms + 'ms)' };
+        case 'MapComplete': return { op: 'MAP', opClass: 'map', domain: event.domain, detail: '<span class="success">&#10003;</span> ' + event.node_count.toLocaleString() + ' nodes, ' + event.edge_count.toLocaleString() + ' edges (' + (event.total_ms/1000).toFixed(1) + 's) &mdash; ' + event.browser_contexts_used + ' browser' };
+        case 'MapFailed': return { op: 'MAP', opClass: 'map', domain: event.domain, detail: '<span class="error">&#10007;</span> ' + event.error };
+        case 'ActionStarted': return { op: 'ACT', opClass: 'act', domain: event.domain, detail: event.action_type + ' via ' + event.execution_path };
+        case 'ActionComplete': return { op: 'ACT', opClass: 'act', domain: event.domain, detail: event.action_type + ' via ' + event.execution_path + ' &rarr; ' + (event.success ? '<span class="success">success</span>' : '<span class="error">failed</span>') + ' (' + event.elapsed_ms + 'ms)' };
+        case 'AuthStarted': return { op: 'AUTH', opClass: 'auth', domain: event.domain, detail: event.method + ' login...' };
+        case 'AuthComplete': return { op: 'AUTH', opClass: 'auth', domain: event.domain, detail: event.method + ' &rarr; ' + (event.success ? '<span class="success">success</span>' : '<span class="error">failed</span>') };
+        case 'QueryExecuted': return { op: 'QUERY', opClass: 'query', domain: event.domain, detail: event.query_type + ': ' + event.results_count + ' results (' + event.elapsed_us + '&mu;s)' };
+        case 'AgentConnected': return { op: 'SYS', opClass: 'sys', domain: '&mdash;', detail: 'Agent connected: ' + (event.agent_name || event.agent_type) };
+        case 'AgentDisconnected': return { op: 'SYS', opClass: 'sys', domain: '&mdash;', detail: 'Agent disconnected: ' + event.agent_type };
+        case 'RuntimeStarted': return { op: 'SYS', opClass: 'sys', domain: '&mdash;', detail: 'Runtime started v' + event.version };
+        default: return { op: '???', opClass: '', domain: event.domain || '&mdash;', detail: event.type };
+      }
+    }
+
+    function renderOperations() {
+      const panel = document.getElementById('operations');
+      const domains = Object.keys(state.operations);
+
+      if (domains.length === 0) {
+        panel.innerHTML = '<div class="empty">No active operations</div>';
+        return;
+      }
+
+      panel.innerHTML = domains.map(function(domain) {
+        const op = state.operations[domain];
+        const layerNames = ['Metadata', 'Structured Data', 'API Discovery', 'Browser Fallback'];
+        const layers = layerNames.map(function(name, i) {
+          const layer = op.layers[i];
+          const progress = layer ? layer.progress * 100 : 0;
+          const detail = layer ? layer.detail : 'queued';
+          return '<div class="progress-label"><span>' + name + '</span><span>' + detail + '</span></div>' +
+                 '<div class="progress-bar"><div class="fill" style="width: ' + progress + '%"></div></div>';
+        }).join('');
+
+        const elapsed = ((Date.now() - op.started) / 1000).toFixed(1);
+
+        return '<div class="progress-card">' +
+          '<div class="card-title">Mapping: ' + domain + '</div>' +
+          layers +
+          '<div style="margin-top: 10px; color: #606070; font-size: 11px;">' +
+            'URLs: ' + (op.urls || 0).toLocaleString() + '  |  Elapsed: ' + elapsed + 's' +
+            (op.jsonldCoverage !== undefined ? '  |  JSON-LD: ' + (op.jsonldCoverage * 100).toFixed(0) + '%' : '') +
+          '</div>' +
+        '</div>';
+      }).join('');
+    }
+
+    function renderAgents() {
+      const list = document.getElementById('agents-list');
+      if (state.agents.length === 0) {
+        list.innerHTML = '<div class="empty">No agents connected</div>';
+        return;
+      }
+      list.innerHTML = state.agents.map(function(a) {
+        return '<div class="agent-row">' +
+          '<div class="name">' + (a.name || a.type) + '</div>' +
+          '<div class="type">' + a.type + '</div>' +
+          '<div class="since">since ' + a.since.toLocaleTimeString() + '</div>' +
+        '</div>';
+      }).join('');
+    }
+
+    function updateStatus(status) {
+      document.getElementById('maps-count').textContent = status.maps_cached || status.cached_maps || 0;
+
+      // Update uptime
+      if (status.uptime_seconds) {
+        const s = Math.floor(status.uptime_seconds);
+        if (s < 60) document.getElementById('uptime').textContent = s + 's';
+        else if (s < 3600) document.getElementById('uptime').textContent = Math.floor(s/60) + 'm ' + (s%60) + 's';
+        else document.getElementById('uptime').textContent = Math.floor(s/3600) + 'h ' + Math.floor((s%3600)/60) + 'm';
+      }
+
+      if (status.maps) {
+        const list = document.getElementById('maps-list');
+        list.innerHTML = (status.maps || []).map(function(m) {
+          return '<div class="stat-row">' +
+            '<span class="label">' + m.domain + '</span>' +
+            '<span class="value">' + (m.node_count || 0).toLocaleString() + ' nodes</span>' +
+          '</div>';
+        }).join('');
+      }
+
+      // System stats
+      const sysDiv = document.getElementById('system-stats');
+      sysDiv.innerHTML =
+        '<div class="stat-row"><span class="label">Version</span><span class="value">' + (status.version || '?') + '</span></div>' +
+        '<div class="stat-row"><span class="label">Memory</span><span class="value">' + (status.memory_mb || 0) + ' MB</span></div>';
+    }
+
+    function updateFooter() {
+      document.getElementById('maps-today').textContent = state.stats.maps;
+      document.getElementById('actions-today').textContent = state.stats.actions;
+      document.getElementById('queries-today').textContent = state.stats.queries.toLocaleString();
+
+      if (state.stats.mapTimes.length > 0) {
+        const avg = state.stats.mapTimes.reduce(function(a, b) { return a + b; }, 0) / state.stats.mapTimes.length;
+        document.getElementById('avg-map-time').textContent = (avg / 1000).toFixed(1) + 's';
+      }
+
+      if (state.stats.totalMaps > 0) {
+        const pct = ((state.stats.browserUses / state.stats.totalMaps) * 100).toFixed(0);
+        document.getElementById('browser-usage').textContent = pct + '%';
+      }
+    }
+
+    // Render initial empty states
+    renderOperations();
+    renderAgents();
+  </script>
+</body>
+</html>

@@ -7,12 +7,16 @@
 //! Every REST endpoint maps 1:1 to a protocol method, using the
 //! same [`SharedState`] and [`handle_request`] dispatch.
 
+use crate::events::{self, CortexEvent};
 use crate::protocol;
 use crate::server::{handle_request, SharedState};
-use axum::extract::State;
+use axum::extract::{Query, State};
+use axum::response::sse::{Event, Sse};
+use axum::response::{Html, IntoResponse};
 use axum::routing::{get, post};
 use axum::{Json, Router};
 use serde_json::Value;
+use std::convert::Infallible;
 use std::sync::Arc;
 use tower_http::cors::{Any, CorsLayer};
 
@@ -47,7 +51,9 @@ pub fn router(state: Arc<SharedState>) -> Router {
 
     Router::new()
         .route("/health", get(health))
+        .route("/dashboard", get(dashboard))
         .route("/api/v1/status", get(handle_status))
+        .route("/api/v1/events", get(events_sse))
         .route("/api/v1/map", post(handle_map))
         .route("/api/v1/query", post(handle_query))
         .route("/api/v1/pathfind", post(handle_pathfind))
@@ -148,8 +154,101 @@ async fn health() -> Json<Value> {
     Json(serde_json::json!({ "status": "ok" }))
 }
 
+/// Serve the embedded dashboard HTML.
+async fn dashboard() -> impl IntoResponse {
+    Html(include_str!("dashboard.html"))
+}
+
+/// SSE query parameters.
+#[derive(serde::Deserialize, Default)]
+struct EventsParams {
+    domain: Option<String>,
+}
+
+/// Server-Sent Events endpoint for real-time event streaming.
+///
+/// Subscribes to the global event bus and streams events as SSE.
+/// Optionally filters by domain via `?domain=example.com`.
+async fn events_sse(
+    Query(params): Query<EventsParams>,
+    State(state): State<Arc<SharedState>>,
+) -> Sse<impl futures::Stream<Item = Result<Event, Infallible>>> {
+    let mut rx = state.event_bus.subscribe();
+    let domain_filter = params.domain;
+
+    let stream = async_stream::stream! {
+        loop {
+            match rx.recv().await {
+                Ok(event) => {
+                    // Filter by domain if specified
+                    if let Some(ref domain) = domain_filter {
+                        if !events::event_matches_domain(&event, domain) {
+                            continue;
+                        }
+                    }
+                    if let Ok(json) = serde_json::to_string(&event) {
+                        yield Ok(Event::default().data(json));
+                    }
+                }
+                Err(tokio::sync::broadcast::error::RecvError::Lagged(_)) => {
+                    // Missed some events due to slow consumer — continue
+                    continue;
+                }
+                Err(tokio::sync::broadcast::error::RecvError::Closed) => {
+                    break;
+                }
+            }
+        }
+    };
+
+    Sse::new(stream).keep_alive(axum::response::sse::KeepAlive::default())
+}
+
+/// Enhanced status endpoint returning richer data for the dashboard.
 async fn handle_status(State(state): State<Arc<SharedState>>) -> Json<Value> {
-    dispatch("status", serde_json::json!({}), state).await
+    let uptime_s = state.started_at.elapsed().as_secs_f64();
+    let maps_lock = Arc::clone(&state.maps);
+    let maps = maps_lock.read().await;
+
+    let map_list: Vec<Value> = maps
+        .iter()
+        .map(|(domain, sitemap)| {
+            serde_json::json!({
+                "domain": domain,
+                "node_count": sitemap.nodes.len(),
+                "edge_count": sitemap.edges.len(),
+                "action_count": sitemap.actions.len(),
+            })
+        })
+        .collect();
+    let cached_maps = maps.len();
+    let total_nodes: usize = maps.values().map(|m| m.nodes.len()).sum();
+    drop(maps);
+
+    let active_contexts = state
+        .renderer
+        .as_ref()
+        .map(|r| r.active_contexts() as u32)
+        .unwrap_or(0);
+
+    let chromium_available = state.renderer.is_some();
+
+    Json(serde_json::json!({
+        "running": true,
+        "version": env!("CARGO_PKG_VERSION"),
+        "uptime_seconds": uptime_s,
+        "maps_cached": cached_maps,
+        "maps": map_list,
+        "total_nodes": total_nodes,
+        "active_contexts": active_contexts,
+        "chromium_available": chromium_available,
+        "memory_mb": 0,
+        "pool": {
+            "active": active_contexts,
+            "max": 8,
+            "memory_mb": 0,
+        },
+    }))
 }
 
 async fn handle_map(State(state): State<Arc<SharedState>>, Json(body): Json<Value>) -> Json<Value> {

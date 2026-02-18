@@ -24,6 +24,7 @@ use crate::cartography::{
 use crate::extraction::loader::ExtractionLoader;
 use crate::map::builder::SiteMapBuilder;
 use crate::map::types::*;
+use crate::progress::{self, MappingLayer, ProgressEventKind, ProgressSender};
 use crate::renderer::Renderer;
 use anyhow::{Context, Result};
 use std::collections::HashMap;
@@ -39,6 +40,9 @@ pub struct MapRequest {
     pub max_render: u32,
     pub timeout_ms: u64,
     pub respect_robots: bool,
+    /// Optional progress event sender for real-time telemetry.
+    /// When `None`, no events are emitted (zero cost).
+    pub progress_tx: Option<ProgressSender>,
 }
 
 /// The Mapper orchestrates the entire site mapping process.
@@ -64,6 +68,11 @@ impl Mapper {
             request.domain, request.max_nodes, request.max_render
         );
 
+        // Progress tracking
+        let ptx = &request.progress_tx;
+        let req_id = format!("map-{}", std::process::id());
+        let mut seq: u64 = 0;
+
         let http_client = HttpClient::new(request.timeout_ms);
 
         // Time budgets
@@ -74,6 +83,16 @@ impl Mapper {
             std::time::Duration::from_millis((request.timeout_ms as f64 * 0.70) as u64);
 
         // ── Layer 0: Metadata (sitemap + robots + HEAD scan + feeds) ──
+
+        progress::emit(
+            ptx,
+            &req_id,
+            &mut seq,
+            ProgressEventKind::LayerStarted {
+                layer: MappingLayer::L0Metadata,
+                message: "Scanning robots.txt, sitemap.xml, homepage links".to_string(),
+            },
+        );
 
         // 0a. Fetch robots.txt
         let robots_rules = self
@@ -291,6 +310,33 @@ impl Mapper {
             start.elapsed().as_secs_f64()
         );
 
+        progress::emit(
+            ptx,
+            &req_id,
+            &mut seq,
+            ProgressEventKind::LayerCompleted {
+                layer: MappingLayer::L0Metadata,
+                message: format!("{} URLs discovered", all_urls.len()),
+                duration_ms: start.elapsed().as_millis() as u64,
+            },
+        );
+        progress::emit(
+            ptx,
+            &req_id,
+            &mut seq,
+            ProgressEventKind::MappingProgress {
+                urls_discovered: all_urls.len() as u32,
+                pages_fetched: 0,
+                nodes_built: 0,
+                edges_built: 0,
+                active_requests: 0,
+                elapsed_ms: start.elapsed().as_millis() as u64,
+                prices_found: 0,
+                ratings_found: 0,
+                actions_found: 0,
+            },
+        );
+
         // 0e. HEAD scan to filter HTML pages
         let html_urls = if all_urls.len() > 50 {
             // Only HEAD scan a sample for large sites
@@ -316,6 +362,16 @@ impl Mapper {
         info!(
             "Layer 1: fetching {} sample pages via HTTP",
             sample_urls.len()
+        );
+
+        progress::emit(
+            ptx,
+            &req_id,
+            &mut seq,
+            ProgressEventKind::LayerStarted {
+                layer: MappingLayer::L1HttpFetch,
+                message: format!("Fetching {} sample pages", sample_urls.len()),
+            },
         );
 
         let responses = http_client.get_many(&sample_urls, 20, 10000).await;
@@ -420,16 +476,102 @@ impl Mapper {
             start.elapsed().as_secs_f64()
         );
 
+        progress::emit(
+            ptx,
+            &req_id,
+            &mut seq,
+            ProgressEventKind::LayerCompleted {
+                layer: MappingLayer::L1HttpFetch,
+                message: format!("{} pages fetched", structured_results.len()),
+                duration_ms: start.elapsed().as_millis() as u64,
+            },
+        );
+        progress::emit(
+            ptx,
+            &req_id,
+            &mut seq,
+            ProgressEventKind::LayerCompleted {
+                layer: MappingLayer::L15Pattern,
+                message: format!("{} with pattern data", pattern_count),
+                duration_ms: start.elapsed().as_millis() as u64,
+            },
+        );
+        progress::emit(
+            ptx,
+            &req_id,
+            &mut seq,
+            ProgressEventKind::LayerCompleted {
+                layer: MappingLayer::L25Actions,
+                message: format!("{} HTTP actions discovered", action_count),
+                duration_ms: start.elapsed().as_millis() as u64,
+            },
+        );
+        progress::emit(
+            ptx,
+            &req_id,
+            &mut seq,
+            ProgressEventKind::MappingProgress {
+                urls_discovered: all_urls.len() as u32,
+                pages_fetched: structured_results.len() as u32,
+                nodes_built: 0,
+                edges_built: 0,
+                active_requests: 0,
+                elapsed_ms: start.elapsed().as_millis() as u64,
+                prices_found: 0,
+                ratings_found: 0,
+                actions_found: action_count as u32,
+            },
+        );
+
         // ── Layer 2: API Discovery ──
 
         if api_discovery::has_known_api(&request.domain) && start.elapsed() < layer1_deadline {
+            progress::emit(
+                ptx,
+                &req_id,
+                &mut seq,
+                ProgressEventKind::LayerStarted {
+                    layer: MappingLayer::L2ApiDiscovery,
+                    message: "Scanning known API endpoints".to_string(),
+                },
+            );
             let api_urls: Vec<String> = sample_urls.iter().take(5).cloned().collect();
             if let Some(records) =
                 api_discovery::try_api(&request.domain, &api_urls, &http_client).await
             {
                 info!("Layer 2: API returned {} records", records.len());
-                // API data enriches existing structured data but doesn't replace it
+                progress::emit(
+                    ptx,
+                    &req_id,
+                    &mut seq,
+                    ProgressEventKind::LayerCompleted {
+                        layer: MappingLayer::L2ApiDiscovery,
+                        message: format!("{} API records", records.len()),
+                        duration_ms: start.elapsed().as_millis() as u64,
+                    },
+                );
+            } else {
+                progress::emit(
+                    ptx,
+                    &req_id,
+                    &mut seq,
+                    ProgressEventKind::LayerCompleted {
+                        layer: MappingLayer::L2ApiDiscovery,
+                        message: "No API data".to_string(),
+                        duration_ms: start.elapsed().as_millis() as u64,
+                    },
+                );
             }
+        } else {
+            progress::emit(
+                ptx,
+                &req_id,
+                &mut seq,
+                ProgressEventKind::LayerSkipped {
+                    layer: MappingLayer::L2ApiDiscovery,
+                    reason: "No known API".to_string(),
+                },
+            );
         }
 
         // ── Layer 3: Browser fallback (only for pages with <20% completeness after all layers) ──
@@ -457,6 +599,15 @@ impl Mapper {
 
         if !needs_browser.is_empty() && start.elapsed() < total_budget {
             let browser_count = needs_browser.len().min(request.max_render as usize).min(10);
+            progress::emit(
+                ptx,
+                &req_id,
+                &mut seq,
+                ProgressEventKind::LayerStarted {
+                    layer: MappingLayer::L3Browser,
+                    message: format!("Rendering {} pages with browser", browser_count),
+                },
+            );
             info!(
                 "Layer 3: {} pages need browser fallback (of {} with low completeness)",
                 browser_count,
@@ -486,7 +637,37 @@ impl Mapper {
                     browser_pages.len(),
                     start.elapsed().as_secs_f64()
                 );
+                progress::emit(
+                    ptx,
+                    &req_id,
+                    &mut seq,
+                    ProgressEventKind::LayerCompleted {
+                        layer: MappingLayer::L3Browser,
+                        message: format!("{} pages rendered", browser_pages.len()),
+                        duration_ms: start.elapsed().as_millis() as u64,
+                    },
+                );
+            } else {
+                progress::emit(
+                    ptx,
+                    &req_id,
+                    &mut seq,
+                    ProgressEventKind::LayerSkipped {
+                        layer: MappingLayer::L3Browser,
+                        reason: "Browser rendering failed".to_string(),
+                    },
+                );
             }
+        } else if needs_browser.is_empty() {
+            progress::emit(
+                ptx,
+                &req_id,
+                &mut seq,
+                ProgressEventKind::LayerSkipped {
+                    layer: MappingLayer::L3Browser,
+                    reason: "HTTP data sufficient".to_string(),
+                },
+            );
         }
 
         // ── Build the map from all layers ──
@@ -497,13 +678,51 @@ impl Mapper {
             .map(|(url, sd, head, pr, _html, actions)| (url, sd, head, pr, actions))
             .collect();
 
-        self.build_map_from_layers(
+        progress::emit(
+            ptx,
+            &req_id,
+            &mut seq,
+            ProgressEventKind::LayerStarted {
+                layer: MappingLayer::BuildGraph,
+                message: "Constructing graph from all layers".to_string(),
+            },
+        );
+
+        let sitemap = self.build_map_from_layers(
             &request.domain,
             &all_urls,
             &layer_results,
             &browser_pages,
             request.max_nodes,
-        )
+        )?;
+
+        progress::emit(
+            ptx,
+            &req_id,
+            &mut seq,
+            ProgressEventKind::LayerCompleted {
+                layer: MappingLayer::BuildGraph,
+                message: format!(
+                    "{} nodes, {} edges",
+                    sitemap.header.node_count, sitemap.header.edge_count
+                ),
+                duration_ms: start.elapsed().as_millis() as u64,
+            },
+        );
+
+        progress::emit(
+            ptx,
+            &req_id,
+            &mut seq,
+            ProgressEventKind::MappingComplete {
+                node_count: sitemap.header.node_count,
+                edge_count: sitemap.header.edge_count,
+                action_count: sitemap.actions.len() as u32,
+                elapsed_ms: start.elapsed().as_millis() as u64,
+            },
+        );
+
+        Ok(sitemap)
     }
 
     async fn fetch_robots(
