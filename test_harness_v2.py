@@ -10,6 +10,7 @@ import sys
 import os
 import time
 import json
+import signal
 import traceback
 
 # Ensure cortex binary is on PATH for the client's auto-start logic
@@ -70,7 +71,7 @@ def test_site_v2(domain: str) -> dict:
     # ── TEST 1: Mapping (20 points) ──────────────────────
     try:
         start = time.time()
-        site = cortex_map(domain, max_time_ms=30000, max_nodes=10000, max_render=50, timeout_ms=120000)
+        site = cortex_map(domain, max_time_ms=30000, max_nodes=10000, max_render=50, timeout_ms=60000)
         map_time = time.time() - start
 
         score = 0
@@ -426,12 +427,20 @@ def run_full_test_suite_v2():
     print(f"{'=' * 60}")
     sys.stdout.flush()
 
+    def _site_timeout_handler(signum, frame):
+        raise TimeoutError("Site test timed out")
+
     for i, domain in enumerate(SITES):
         print(f"\n[{i + 1}/100] {domain}...")
         sys.stdout.flush()
 
         try:
+            # Per-site timeout of 90 seconds
+            old_handler = signal.signal(signal.SIGALRM, _site_timeout_handler)
+            signal.alarm(90)
             result = test_site_v2(domain)
+            signal.alarm(0)
+            signal.signal(signal.SIGALRM, old_handler)
             all_results.append(result)
 
             sc = result["total_score"]
@@ -454,6 +463,7 @@ def run_full_test_suite_v2():
                     print(f"    ERROR: {err}")
 
         except Exception as e:
+            signal.alarm(0)
             print(f"  XX CRASH: {e}")
             traceback.print_exc()
             all_results.append({

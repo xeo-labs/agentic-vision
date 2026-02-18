@@ -157,6 +157,27 @@ impl SiteMapBuilder {
         }
     }
 
+    /// Read a single feature dimension for an existing node.
+    pub fn get_feature(&self, node: u32, dimension: usize) -> f32 {
+        let idx = node as usize;
+        if idx < self.features.len() && dimension < FEATURE_DIM {
+            self.features[idx][dimension]
+        } else {
+            0.0
+        }
+    }
+
+    /// Update a single feature dimension for an existing node.
+    ///
+    /// Used to patch feature vectors after initial encoding — for example,
+    /// to inject HTTP action counts discovered in Layer 2.5.
+    pub fn update_feature(&mut self, node: u32, dimension: usize, value: f32) {
+        let idx = node as usize;
+        if idx < self.features.len() && dimension < FEATURE_DIM {
+            self.features[idx][dimension] = value;
+        }
+    }
+
     /// Merge additional flag bits into a node's flags.
     ///
     /// Used to set computed flags like `HAS_PRICE`, `HAS_MEDIA`, `HAS_FORM`

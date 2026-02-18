@@ -83,16 +83,26 @@ impl ChromiumRenderer {
         let data_dir = std::env::temp_dir().join("cortex-chromium-profile");
         std::fs::create_dir_all(&data_dir).ok();
 
+        // Clean up stale lock files from previous Chrome crashes.
+        // chromiumoxide uses its own runner dir; our --user-data-dir may be
+        // overridden, so clean both locations.
+        for dir_name in ["cortex-chromium-profile", "chromiumoxide-runner"] {
+            let lock = std::env::temp_dir().join(dir_name).join("SingletonLock");
+            if lock.exists() {
+                tracing::info!("removing stale Chrome lock: {}", lock.display());
+                std::fs::remove_file(&lock).ok();
+            }
+        }
+
         let config = BrowserConfig::builder()
             .chrome_executable(chrome_path)
-            .arg("--headless")
+            .new_headless_mode()
             .arg("--disable-gpu")
             .arg("--no-sandbox")
             .arg("--disable-dev-shm-usage")
             .arg("--disable-extensions")
             .arg("--disable-background-networking")
             .arg("--disable-features=TranslateUI")
-            .arg("--remote-debugging-port=0")
             .arg(format!("--user-data-dir={}", data_dir.display()))
             .build()
             .map_err(|e| anyhow::anyhow!("failed to build browser config: {e}"))?;

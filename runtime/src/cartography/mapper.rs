@@ -165,11 +165,54 @@ impl Mapper {
             }
         }
 
+        // 0e2. Browser homepage fallback for client-rendered sites
+        if all_urls.len() < 10 && start.elapsed() < total_budget / 2 {
+            match self.render_page(&entry_url).await {
+                Ok(rendered) => {
+                    for link in &rendered.discovered_links {
+                        if !all_urls.contains(link) {
+                            all_urls.push(link.clone());
+                        }
+                    }
+                    if !rendered.discovered_links.is_empty() {
+                        info!(
+                            "browser homepage rendered {} links for {}",
+                            rendered.discovered_links.len(),
+                            request.domain
+                        );
+                    }
+                }
+                Err(e) => {
+                    warn!(
+                        "browser homepage fallback failed for {}: {e}",
+                        request.domain
+                    );
+                }
+            }
+        }
+
         // 0f. If still very few URLs, try common paths as heuristic fallback
         if all_urls.len() < 10 {
             let common_paths = [
-                "/about", "/help", "/products", "/blog", "/news", "/categories",
-                "/search", "/contact", "/faq", "/terms", "/privacy", "/sitemap",
+                // General
+                "/about", "/help", "/contact", "/faq", "/terms", "/privacy",
+                "/search", "/sitemap", "/login", "/register", "/account",
+                // E-commerce
+                "/products", "/categories", "/shop", "/deals", "/cart",
+                "/computers", "/laptops", "/phones", "/tv", "/audio",
+                "/appliances", "/cameras", "/tablets", "/accessories",
+                "/sale", "/new-arrivals", "/best-sellers", "/brands",
+                // News/media
+                "/news", "/blog", "/articles", "/world", "/politics",
+                "/business", "/technology", "/sports", "/entertainment",
+                "/opinion", "/science", "/health", "/lifestyle",
+                "/national", "/tech", "/culture",
+                // Docs/reference
+                "/docs", "/guide", "/api", "/reference", "/tutorials",
+                "/getting-started", "/learn", "/documentation",
+                // Community
+                "/community", "/forum", "/discussions", "/popular",
+                "/trending", "/explore", "/discover",
             ];
             for path in &common_paths {
                 let url = format!("https://{}{}", request.domain, path);
@@ -277,16 +320,12 @@ impl Mapper {
                         .map(|(_, v)| v.clone()),
                 };
 
-                // Layer 1.5: Run pattern engine on pages with <50% structured data completeness
-                let sd_completeness = structured::data_completeness(&sd);
-                let pattern_result = if sd_completeness < 0.5 {
-                    Some(pattern_engine::extract_from_patterns(
-                        &resp.body,
-                        &resp.final_url,
-                    ))
-                } else {
-                    None
-                };
+                // Layer 1.5: Run pattern engine — always, for actions + commerce fallback
+                let _sd_completeness = structured::data_completeness(&sd);
+                let pattern_result = Some(pattern_engine::extract_from_patterns(
+                    &resp.body,
+                    &resp.final_url,
+                ));
 
                 // Layer 2.5: Action discovery — forms + platform templates
                 let mut http_actions =
@@ -382,9 +421,16 @@ impl Mapper {
                 if start.elapsed() >= total_budget {
                     break;
                 }
-                match self.render_page(url).await {
-                    Ok(page) => browser_pages.push(page),
-                    Err(e) => warn!("browser fallback failed for {url}: {e}"),
+                // Per-page browser timeout of 20s to prevent hangs
+                match tokio::time::timeout(
+                    std::time::Duration::from_secs(20),
+                    self.render_page(url),
+                )
+                .await
+                {
+                    Ok(Ok(page)) => browser_pages.push(page),
+                    Ok(Err(e)) => warn!("browser fallback failed for {url}: {e}"),
+                    Err(_) => warn!("browser fallback timed out for {url}"),
                 }
             }
 
@@ -450,7 +496,13 @@ impl Mapper {
             format!("https://{domain}/sitemap.xml"),
             format!("https://{domain}/sitemap_index.xml"),
             format!("https://www.{domain}/sitemap.xml"),
+            format!("https://www.{domain}/sitemap_index.xml"),
             format!("https://{domain}/sitemaps.xml"),
+            format!("https://{domain}/sitemap1.xml"),
+            format!("https://{domain}/sitemap-index.xml"),
+            format!("https://{domain}/google-sitemap.xml"),
+            format!("https://{domain}/sitemap.html"),
+            format!("https://{domain}/wp-sitemap.xml"),
         ];
         for candidate in &candidates {
             if !sitemap_urls.contains(candidate) {
@@ -657,9 +709,48 @@ impl Mapper {
 
             // Wire HTTP-executable actions from Layer 2.5 (action discovery)
             if let Some(&idx) = url_to_index.get(url.as_str()) {
-                for action in http_actions {
-                    let risk = ((1.0 - action.confidence) * 3.0).min(3.0) as u8;
-                    builder.add_action_http(idx, action.opcode, -2, 0, risk);
+                if !http_actions.is_empty() {
+                    for action in http_actions {
+                        let risk = ((1.0 - action.confidence) * 3.0).min(3.0) as u8;
+                        builder.add_action_http(idx, action.opcode, -2, 0, risk);
+                    }
+
+                    // Update feature dimensions 96-99 + 106 to reflect HTTP actions
+                    let total = http_actions.len();
+                    let existing_action_feat = builder.get_feature(idx, FEAT_ACTION_COUNT);
+                    let combined = (existing_action_feat * 20.0) as usize + total;
+                    builder.update_feature(
+                        idx,
+                        FEAT_ACTION_COUNT,
+                        (combined as f32 / 20.0).clamp(0.0, 1.0),
+                    );
+
+                    // Classify risk: Form/Api sources are "safe", Platform is "cautious"
+                    let safe_count = http_actions
+                        .iter()
+                        .filter(|a| {
+                            matches!(
+                                a.source,
+                                action_discovery::ActionSource::Form { .. }
+                                    | action_discovery::ActionSource::Api { .. }
+                            )
+                        })
+                        .count();
+                    let safe_ratio = safe_count as f32 / total.max(1) as f32;
+                    builder.update_feature(idx, FEAT_SAFE_ACTION_RATIO, safe_ratio);
+                    builder.update_feature(
+                        idx,
+                        FEAT_CAUTIOUS_ACTION_RATIO,
+                        1.0 - safe_ratio,
+                    );
+
+                    // Check for primary CTA (commerce or auth opcodes)
+                    let has_cta = http_actions
+                        .iter()
+                        .any(|a| a.opcode.category == 0x02 || a.opcode.category == 0x04);
+                    if has_cta {
+                        builder.update_feature(idx, FEAT_PRIMARY_CTA_PRESENT, 1.0);
+                    }
                 }
             }
         }

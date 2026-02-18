@@ -430,9 +430,26 @@ async fn handle_map(req: &protocol::Request, state: Arc<SharedState>) -> String 
 
     info!("MAP request: domain={domain}, max_nodes={max_nodes}, max_render={max_render}");
 
-    // Apply timeout to the mapping operation
+    // Apply timeout to the mapping operation and catch panics
     let map_timeout = Duration::from_millis(timeout_ms + 5000); // 5s buffer
-    let result = tokio::time::timeout(map_timeout, mapper.map(map_request)).await;
+    let map_future = mapper.map(map_request);
+    let result = tokio::time::timeout(map_timeout, map_future).await;
+
+    // Catch panics from the mapping operation by checking if we got a valid result
+    let result = match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| result)) {
+        Ok(r) => r,
+        Err(panic_info) => {
+            let msg = if let Some(s) = panic_info.downcast_ref::<&str>() {
+                s.to_string()
+            } else if let Some(s) = panic_info.downcast_ref::<String>() {
+                s.clone()
+            } else {
+                "unknown panic".to_string()
+            };
+            error!("MAP panicked for {domain}: {msg}");
+            return build_http_fallback_map(domain.clone(), req_id, maps, false).await;
+        }
+    };
 
     match result {
         Ok(Ok(sitemap)) => {

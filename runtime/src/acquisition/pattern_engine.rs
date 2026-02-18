@@ -483,7 +483,8 @@ fn extract_page_type(document: &Html, config: &Value, result: &mut PatternResult
 fn extract_actions(document: &Html, base_url: &str, config: &Value, result: &mut PatternResult) {
     let action_keywords = &config["action_keywords"];
 
-    // 1. Buttons and submit inputs
+    // 1. Buttons and submit inputs — count ALL buttons as actions,
+    //    classify with keyword matching where possible
     let button_selectors = ["button", "input[type=\"submit\"]", "input[type=\"button\"]"];
     for btn_sel_str in &button_selectors {
         if let Ok(sel) = Selector::parse(btn_sel_str) {
@@ -496,13 +497,18 @@ fn extract_actions(document: &Html, base_url: &str, config: &Value, result: &mut
                 if label.is_empty() {
                     continue;
                 }
-                if let Some(opcode) = classify_action_label(&label, action_keywords) {
-                    result.actions.push(DiscoveredAction {
-                        label: label.clone(),
-                        opcode,
-                        confidence: 0.90,
-                    });
-                }
+                let opcode = classify_action_label(&label, action_keywords)
+                    .unwrap_or((0x00, 0x00)); // default: navigation click
+                let confidence = if opcode != (0x00, 0x00) {
+                    0.90
+                } else {
+                    0.70
+                };
+                result.actions.push(DiscoveredAction {
+                    label,
+                    opcode,
+                    confidence,
+                });
             }
         }
     }
@@ -538,29 +544,90 @@ fn extract_actions(document: &Html, base_url: &str, config: &Value, result: &mut
         }
     }
 
-    // 3. Links styled as buttons (CTA links)
-    if let Ok(sel) = Selector::parse("a[class]") {
+    // 3. Links styled as buttons (CTA links) — expanded matching
+    if let Ok(sel) = Selector::parse("a[class], a[role=\"button\"]") {
         for el in document.select(&sel) {
-            if let Some(class_attr) = el.value().attr("class") {
-                let class_lower = class_attr.to_lowercase();
-                if class_lower.contains("btn")
-                    || class_lower.contains("button")
-                    || class_lower.contains("cta")
-                {
-                    let label = element_text(&el);
-                    if label.is_empty() {
-                        continue;
+            let class_lower = el
+                .value()
+                .attr("class")
+                .map(|c| c.to_lowercase())
+                .unwrap_or_default();
+            let role = el.value().attr("role").unwrap_or("");
+            if class_lower.contains("btn")
+                || class_lower.contains("button")
+                || class_lower.contains("cta")
+                || class_lower.contains("action")
+                || class_lower.contains("nav-link")
+                || class_lower.contains("primary")
+                || role == "button"
+            {
+                let label = element_text(&el);
+                if label.is_empty() {
+                    continue;
+                }
+                let opcode =
+                    classify_action_label(&label, action_keywords).unwrap_or((0x00, 0x00));
+                result.actions.push(DiscoveredAction {
+                    label,
+                    opcode,
+                    confidence: 0.80,
+                });
+            }
+        }
+    }
+
+    // 4. Links with action-like hrefs (login, signup, search, contact, etc.)
+    if result.actions.is_empty() && result.forms.is_empty() {
+        if let Ok(sel) = Selector::parse("a[href]") {
+            for el in document.select(&sel) {
+                if let Some(href) = el.value().attr("href") {
+                    let href_lower = href.to_lowercase();
+                    let opcode = if href_lower.contains("login")
+                        || href_lower.contains("signin")
+                        || href_lower.contains("sign-in")
+                    {
+                        Some((0x04, 0x01)) // auth: login
+                    } else if href_lower.contains("signup")
+                        || href_lower.contains("register")
+                        || href_lower.contains("sign-up")
+                        || href_lower.contains("join")
+                    {
+                        Some((0x04, 0x00)) // auth: register
+                    } else if href_lower.contains("search") {
+                        Some((0x01, 0x00)) // navigation: search
+                    } else if href_lower.contains("subscribe") {
+                        Some((0x03, 0x00)) // content: subscribe
+                    } else if href_lower.contains("contact") {
+                        Some((0x00, 0x00)) // navigation: contact
+                    } else if href_lower.contains("cart") || href_lower.contains("basket") {
+                        Some((0x02, 0x01)) // commerce: cart
+                    } else {
+                        None
+                    };
+                    if let Some(op) = opcode {
+                        let label = element_text(&el);
+                        if !label.is_empty() {
+                            result.actions.push(DiscoveredAction {
+                                label,
+                                opcode: op,
+                                confidence: 0.70,
+                            });
+                        }
                     }
-                    // Check if it matches a known action keyword first
-                    let opcode =
-                        classify_action_label(&label, action_keywords).unwrap_or((0x00, 0x00)); // default: navigation click
-                    result.actions.push(DiscoveredAction {
-                        label,
-                        opcode,
-                        confidence: 0.80,
-                    });
                 }
             }
+        }
+    }
+
+    // 5. Search input fields (even outside forms)
+    if let Ok(sel) = Selector::parse("input[type=\"search\"], input[name=\"q\"], input[name=\"query\"], input[name=\"search\"]") {
+        for _el in document.select(&sel) {
+            result.actions.push(DiscoveredAction {
+                label: "Search".to_string(),
+                opcode: (0x01, 0x00), // navigation: search
+                confidence: 0.85,
+            });
+            break; // One is enough
         }
     }
 }
