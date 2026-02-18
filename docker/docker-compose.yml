@@ -1,0 +1,33 @@
+# Copyright 2026 Cortex Contributors
+# SPDX-License-Identifier: Apache-2.0
+#
+# Usage:
+#   docker compose -f docker/docker-compose.yml up -d cortex-lite
+#   docker compose -f docker/docker-compose.yml up -d cortex-full
+
+services:
+  cortex-lite:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.lite
+    ports:
+      - "7700:7700"
+    volumes:
+      - cortex-data-lite:/home/cortex/.cortex
+    restart: unless-stopped
+
+  cortex-full:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.full
+    ports:
+      - "7700:7700"
+    volumes:
+      - cortex-data-full:/home/cortex/.cortex
+    # Chromium needs more shared memory
+    shm_size: "2gb"
+    restart: unless-stopped
+
+volumes:
+  cortex-data-lite:
+  cortex-data-full:

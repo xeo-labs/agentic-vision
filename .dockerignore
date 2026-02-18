@@ -1,0 +1,11 @@
+target/
+node_modules/
+.git/
+*.md
+!README.md
+docs/planning/
+tests/
+test-report*.json
+test_harness.py
+.DS_Store
+*.log
