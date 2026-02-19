@@ -8,7 +8,7 @@ and ranks them by price. Demonstrates multi-site mapping, feature
 filtering, and the commerce dimensions of the 128-d feature vector.
 
 Usage:
-    pip install cortex-client
+    pip install cortex-agent
     python 02_price_comparison.py
 """
 import cortex_client

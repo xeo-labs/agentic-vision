@@ -7,7 +7,7 @@ Demonstrates registering cortex_map, cortex_query, and cortex_act
 as function-calling tools for an AutoGen AssistantAgent.
 
 Requirements:
-    pip install cortex-client cortex-autogen pyautogen
+    pip install cortex-agent cortex-autogen pyautogen
 
 Usage:
     export OPENAI_API_KEY=sk-...

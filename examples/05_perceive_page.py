@@ -8,7 +8,7 @@ fetches and analyzes a page, returning its classification, feature vector,
 and extracted content — without building a full site graph.
 
 Usage:
-    pip install cortex-client
+    pip install cortex-agent
     python 05_perceive_page.py
 """
 import cortex_client

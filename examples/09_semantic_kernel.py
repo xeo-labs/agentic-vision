@@ -8,7 +8,7 @@ cortex_map, cortex_query, cortex_pathfind, and cortex_act as kernel
 functions that an LLM planner can invoke.
 
 Requirements:
-    pip install cortex-client cortex-semantic-kernel semantic-kernel
+    pip install cortex-agent cortex-semantic-kernel semantic-kernel
 
 Usage:
     export OPENAI_API_KEY=sk-...

@@ -7,7 +7,7 @@ Creates a CrewAI agent with the CortexWebCartographer tool, enabling
 autonomous web mapping and research without manual browsing.
 
 Requirements:
-    pip install cortex-client cortex-crewai crewai
+    pip install cortex-agent cortex-crewai crewai
 
 Usage:
     export OPENAI_API_KEY=sk-...

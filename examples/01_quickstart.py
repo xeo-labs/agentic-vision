@@ -7,7 +7,7 @@ This is the simplest possible Cortex example. It maps a domain,
 prints the graph summary, and lists the first few pages found.
 
 Usage:
-    pip install cortex-client
+    pip install cortex-agent
     python 01_quickstart.py
 """
 import cortex_client

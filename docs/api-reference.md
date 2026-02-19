@@ -130,7 +130,7 @@ cortex status                      # Show status + cached maps
 ## Python Client
 
 ```bash
-pip install cortex-client
+pip install cortex-agent
 ```
 
 ### `cortex_client.map(domain, **kwargs)`

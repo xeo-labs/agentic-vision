@@ -7,7 +7,7 @@ Registers Cortex map/query/act as LangChain tools so an LLM-based
 agent can autonomously map websites and search them.
 
 Requirements:
-    pip install cortex-client cortex-langchain langchain langchain-openai
+    pip install cortex-agent cortex-langchain langchain langchain-openai
 
 Usage:
     export OPENAI_API_KEY=sk-...

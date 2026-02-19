@@ -9,7 +9,7 @@ Runnable examples demonstrating Cortex capabilities, from basic mapping to multi
 cargo install cortex-runtime
 
 # Install the Python client
-pip install cortex-client
+pip install cortex-agent
 ```
 
 Cortex auto-starts the daemon and handles Chromium installation on first run. No manual setup needed.
@@ -18,17 +18,17 @@ Cortex auto-starts the daemon and handles Chromium installation on first run. No
 
 | # | File | Description | Dependencies |
 |---|------|-------------|--------------|
-| 01 | `01_quickstart.py` | Map a site and list pages in 10 lines | `cortex-client` |
-| 02 | `02_price_comparison.py` | Compare prices across 5 e-commerce sites | `cortex-client` |
-| 03 | `03_pathfinding.py` | Find shortest navigation route through a site | `cortex-client` |
-| 04 | `04_cross_site_comparison.py` | Compare structures of multiple websites | `cortex-client` |
-| 05 | `05_perceive_page.py` | Analyze a single page without full site mapping | `cortex-client` |
+| 01 | `01_quickstart.py` | Map a site and list pages in 10 lines | `cortex-agent` |
+| 02 | `02_price_comparison.py` | Compare prices across 5 e-commerce sites | `cortex-agent` |
+| 03 | `03_pathfinding.py` | Find shortest navigation route through a site | `cortex-agent` |
+| 04 | `04_cross_site_comparison.py` | Compare structures of multiple websites | `cortex-agent` |
+| 05 | `05_perceive_page.py` | Analyze a single page without full site mapping | `cortex-agent` |
 | 06 | `06_langchain_agent.py` | Use Cortex tools in a LangChain agent | `cortex-langchain`, `langchain` |
 | 07 | `07_crewai_researcher.py` | Build a CrewAI research crew with Cortex | `cortex-crewai`, `crewai` |
 | 08 | `08_autogen_agent.py` | Register Cortex functions with AutoGen agents | `cortex-autogen`, `pyautogen` |
 | 09 | `09_semantic_kernel.py` | Use Cortex as a Semantic Kernel plugin | `cortex-semantic-kernel`, `semantic-kernel` |
-| 10 | `10_mcp_server_demo.py` | Simulate MCP tool calls (Claude, Cursor, etc.) | `cortex-client` |
-| 11 | `11_runtime_status.py` | Monitor runtime health and cached maps | `cortex-client` |
+| 10 | `10_mcp_server_demo.py` | Simulate MCP tool calls (Claude, Cursor, etc.) | `cortex-agent` |
+| 11 | `11_runtime_status.py` | Monitor runtime health and cached maps | `cortex-agent` |
 
 ## Running
 

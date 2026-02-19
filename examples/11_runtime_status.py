@@ -7,7 +7,7 @@ Check the Cortex daemon status, view cached maps, and monitor uptime.
 Useful for building dashboards or health checks in production.
 
 Usage:
-    pip install cortex-client
+    pip install cortex-agent
     python 11_runtime_status.py
 """
 import cortex_client

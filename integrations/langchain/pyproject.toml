@@ -9,7 +9,7 @@ description = "LangChain tools for Cortex web cartography"
 license = {text = "Apache-2.0"}
 requires-python = ">=3.10"
 dependencies = [
-    "cortex-client>=0.1.0",
+    "cortex-agent>=0.1.0",
     "langchain-core>=0.1.0",
 ]
 classifiers = [

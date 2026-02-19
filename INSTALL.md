@@ -54,7 +54,7 @@ docker run -p 7700:7700 cortex-ai/cortex:full
 ### Python
 
 ```bash
-pip install cortex-client
+pip install cortex-agent
 ```
 
 Requires the Cortex runtime to be installed and running. The daemon starts automatically on first use.

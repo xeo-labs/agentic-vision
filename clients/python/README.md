@@ -1,11 +1,11 @@
-# cortex-client
+# cortex-agent
 
 Thin Python client for [Cortex](https://github.com/cortex-ai/cortex) — the rapid web cartographer for AI agents.
 
 ## Install
 
 ```bash
-pip install cortex-client
+pip install cortex-agent
 ```
 
 > Requires the Cortex runtime. Install with: `cargo install cortex-runtime`

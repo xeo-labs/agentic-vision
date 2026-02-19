@@ -9,7 +9,7 @@ core value proposition: agents compute navigation in microseconds
 instead of exploring page-by-page.
 
 Usage:
-    pip install cortex-client
+    pip install cortex-agent
     python 03_pathfinding.py
 """
 import cortex_client

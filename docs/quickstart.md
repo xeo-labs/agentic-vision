@@ -81,7 +81,7 @@ cortex wql "SELECT name, price, rating FROM Product WHERE rating > 4.0 LIMIT 10"
 ## 5. Use from Python
 
 ```bash
-pip install cortex-client
+pip install cortex-agent
 ```
 
 ```python

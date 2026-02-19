@@ -38,7 +38,7 @@ First stable release. All packages at v1.0.0. 397 tests passing. 100-site benchm
 - Framework adapters: LangChain, CrewAI, AutoGen, Semantic Kernel, OpenClaw
 
 **Clients**
-- Python client (`cortex-client`): map, filter, pathfind, similar, perceive, compare, login, WQL
+- Python client (`cortex-agent`): map, filter, pathfind, similar, perceive, compare, login, WQL
 - TypeScript client (`@cortex-ai/client`): map, filter, pathfind, similar, perceive, status
 
 **Documentation**

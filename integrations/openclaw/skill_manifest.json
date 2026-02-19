@@ -16,6 +16,6 @@
   ],
   "dependencies": {
     "runtime": "cortex-runtime >= 0.1.0",
-    "python": "cortex-client >= 0.1.0"
+    "python": "cortex-agent >= 0.1.0"
   }
 }

@@ -4,7 +4,7 @@
 
 <p align="center">
   <a href="#install"><img src="https://img.shields.io/badge/cargo_install-cortex--runtime-F59E0B?style=for-the-badge&logo=rust&logoColor=white" alt="cargo install"></a>
-  <a href="#install"><img src="https://img.shields.io/badge/pip_install-cortex--client-3B82F6?style=for-the-badge&logo=python&logoColor=white" alt="pip install"></a>
+  <a href="#install"><img src="https://img.shields.io/badge/pip_install-cortex--agent-3B82F6?style=for-the-badge&logo=python&logoColor=white" alt="pip install"></a>
   <a href="#install"><img src="https://img.shields.io/badge/npm_install-@cortex--ai/client-22C55E?style=for-the-badge&logo=npm&logoColor=white" alt="npm install"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache_2.0-8B5CF6?style=for-the-badge" alt="Apache 2.0 License"></a>
   <a href="publication/cortex-paper.pdf"><img src="https://img.shields.io/badge/Research-Paper-EF4444?style=for-the-badge" alt="Research Paper"></a>
@@ -200,7 +200,7 @@ curl -fsSL https://cortex.dev/install | bash
 
 **Python client:**
 ```bash
-pip install cortex-client
+pip install cortex-agent
 ```
 
 **TypeScript client:**
@@ -318,7 +318,7 @@ Global flags: `--json` `--quiet` `--verbose` `--no-color`
 | Component | Package | Install |
 |:----------|:--------|:--------|
 | **Runtime** | `cortex-runtime` | `cargo install cortex-runtime` |
-| **Python client** | `cortex-client` | `pip install cortex-client` |
+| **Python client** | `cortex-agent` | `pip install cortex-agent` |
 | **TypeScript client** | `@cortex-ai/client` | `npm install @cortex-ai/client` |
 | **MCP server** | `@cortex/mcp-server` | `cortex plug` (auto) |
 | **LangChain** | `cortex-langchain` | `pip install cortex-langchain` |
@@ -366,7 +366,7 @@ cortex/
 │       ├── audit/            # JSONL logging, remote sync
 │       └── cli/              # CLI commands
 ├── clients/
-│   ├── python/           # Python thin client (cortex-client)
+│   ├── python/           # Python thin client (cortex-agent)
 │   └── typescript/       # TypeScript thin client (@cortex-ai/client)
 ├── integrations/
 │   ├── mcp-server/       # MCP server for Claude, Cursor, Windsurf, Continue, Cline

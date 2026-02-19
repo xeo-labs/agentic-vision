@@ -9,7 +9,7 @@ and Continue to use Cortex directly. This script demonstrates the
 equivalent functionality using the Python client.
 
 Usage:
-    pip install cortex-client
+    pip install cortex-agent
     python 10_mcp_server_demo.py
 
 To actually use the MCP server with an AI agent:

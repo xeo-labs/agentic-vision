@@ -8,7 +8,7 @@ differences between websites. Useful for competitive analysis,
 migration planning, or architecture audits.
 
 Usage:
-    pip install cortex-client
+    pip install cortex-agent
     python 04_cross_site_comparison.py
 """
 import cortex_client
