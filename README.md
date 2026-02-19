@@ -1,12 +1,9 @@
 <p align="center">
-  <img src="assets/logo.svg" alt="AgenticVision" width="120">
+  <img src="assets/hero-banner.svg" alt="AgenticVision — Persistent visual memory for AI agents" width="800">
 </p>
 
-<h1 align="center">AgenticVision</h1>
-
 <p align="center">
-  <strong>Persistent visual memory for AI agents.</strong><br>
-  Capture, embed, compare, and recall images across sessions — via MCP or direct API.
+  <img src="assets/logo.svg" alt="AgenticVision" width="120">
 </p>
 
 <p align="center">
@@ -35,6 +32,12 @@ cargo install agentic-vision-mcp
 ```
 
 One binary. 10 MCP tools. Persistent `.avis` files. Works with Claude Desktop, VS Code, Cursor, Windsurf, and any MCP-compatible client.
+
+---
+
+<p align="center">
+  <img src="assets/architecture.svg" alt="AgenticVision architecture — MCP clients, transport, tools, resources, prompts, CLIP engine, similarity, diff, memory linking, .avis storage" width="800">
+</p>
 
 ---
 
