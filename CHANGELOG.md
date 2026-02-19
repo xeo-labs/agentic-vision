@@ -58,4 +58,4 @@ First release. Two crates published to crates.io. 88 tests passing across all su
 | MCP tool round-trip | 7.2 ms |
 | Storage per capture | ~4.26 KB |
 
-[0.1.0]: https://github.com/agentic-revolution/agentic-vision/releases/tag/v0.1.0
+[0.1.0]: https://github.com/xeo-labs/agentic-vision/releases/tag/v0.1.0

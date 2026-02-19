@@ -97,7 +97,7 @@ println!("Captures: {}", store.count());
 
 ## 3. Combined with AgenticMemory
 
-AgenticVision links to [AgenticMemory](https://github.com/agentic-revolution/agentic-memory) for full cognitive + visual agent memory. Run both MCP servers:
+AgenticVision links to [AgenticMemory](https://github.com/xeo-labs/agentic-memory) for full cognitive + visual agent memory. Run both MCP servers:
 
 ```json
 {
@@ -121,7 +121,7 @@ The `vision_link` tool bridges captures to memory nodes. An agent can associate 
 ## Build from Source
 
 ```bash
-git clone https://github.com/agentic-revolution/agentic-vision.git
+git clone https://github.com/xeo-labs/agentic-vision.git
 cd agentic-vision
 
 # Build entire workspace (core library + MCP server)

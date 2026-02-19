@@ -1,9 +1,5 @@
 <p align="center">
-  <img src="assets/hero-banner.svg" alt="AgenticVision — Persistent visual memory for AI agents" width="800">
-</p>
-
-<p align="center">
-  <img src="assets/logo.svg" alt="AgenticVision" width="120">
+  <img src="assets/logo.svg" alt="AgenticVision" width="320">
 </p>
 
 <p align="center">
@@ -14,7 +10,7 @@
 </p>
 
 <p align="center">
-  <a href="#quickstart">Quickstart</a> · <a href="#why">Why</a> · <a href="#benchmarks">Benchmarks</a> · <a href="#how-it-works">How It Works</a> · <a href="#install">Install</a> · <a href="INSTALL.md">Full Install Guide</a> · <a href="publication/paper-ii-agentic-vision-mcp/agentic-vision-mcp-paper.pdf">Paper</a>
+  <a href="#quickstart">Quickstart</a> · <a href="#why-agenticvision">Why</a> · <a href="#benchmarks">Benchmarks</a> · <a href="#how-it-works">How It Works</a> · <a href="#install">Install</a> · <a href="INSTALL.md">Full Install Guide</a> · <a href="publication/paper-ii-agentic-vision-mcp/agentic-vision-mcp-paper.pdf">Paper</a>
 </p>
 
 ---
@@ -41,22 +37,6 @@ One binary. 10 MCP tools. Persistent `.avis` files. Works with Claude Desktop, V
 
 ---
 
-<a name="why"></a>
-
-## Why AgenticVision
-
-**Agents need visual continuity.** A debugging agent should remember what the UI looked like before and after a code change. A monitoring agent should detect visual regressions. A research agent should build a visual knowledge base over time.
-
-**Capture once, query forever.** Every image is embedded into a 512-dimensional CLIP vector and stored with its JPEG thumbnail, timestamp, and description. Query by cosine similarity, time range, or text search — in milliseconds.
-
-**Binary format, not a database.** The `.avis` file is a single portable binary — 64-byte header, JSON payload, JPEG thumbnails. Copy it, share it, back it up. No server, no database, no dependencies.
-
-**Works with every MCP client.** AgenticVision-MCP exposes 10 tools, 6 resources, and 4 prompts via the Model Context Protocol. Any LLM that speaks MCP gains visual memory automatically.
-
-**Links to AgenticMemory.** The `vision_link` tool connects visual captures to [AgenticMemory](https://github.com/agentic-revolution/agentic-memory) cognitive graph nodes — bridging what an agent *sees* with what it *knows*.
-
----
-
 <a name="benchmarks"></a>
 
 ## Benchmarks
@@ -73,6 +53,22 @@ Rust core. CLIP ViT-B/32 via ONNX Runtime. Binary `.avis` format. Real numbers f
 | Capacity per GB | **~250K** | Observations |
 
 > All benchmarks on Apple M4, macOS 26.2, Rust 1.90.0 `--release`. ONNX Runtime for CLIP inference. Fallback mode available when ONNX model is not present.
+
+---
+
+<a name="why-agenticvision"></a>
+
+## Why AgenticVision
+
+**Agents need visual continuity.** A debugging agent should remember what the UI looked like before and after a code change. A monitoring agent should detect visual regressions. A research agent should build a visual knowledge base over time.
+
+**Capture once, query forever.** Every image is embedded into a 512-dimensional CLIP vector and stored with its JPEG thumbnail, timestamp, and description. Query by cosine similarity, time range, or text search — in milliseconds.
+
+**Binary format, not a database.** The `.avis` file is a single portable binary — 64-byte header, JSON payload, JPEG thumbnails. Copy it, share it, back it up. No server, no database, no dependencies.
+
+**Works with every MCP client.** AgenticVision-MCP exposes 10 tools, 6 resources, and 4 prompts via the Model Context Protocol. Any LLM that speaks MCP gains visual memory automatically.
+
+**Links to AgenticMemory.** The `vision_link` tool connects visual captures to [AgenticMemory](https://github.com/xeo-labs/agentic-memory) cognitive graph nodes — bridging what an agent *sees* with what it *knows*.
 
 ---
 
@@ -277,7 +273,7 @@ Configure Claude Desktop (`~/Library/Application Support/Claude/claude_desktop_c
 
 See [CONTRIBUTING.md](CONTRIBUTING.md). The fastest ways to help:
 
-1. **Try it** and [file issues](https://github.com/agentic-revolution/agentic-vision/issues)
+1. **Try it** and [file issues](https://github.com/xeo-labs/agentic-vision/issues)
 2. **Add an MCP tool** — extend the visual memory surface
 3. **Write an example** — show a real use case
 4. **Improve docs** — every clarification helps someone
@@ -285,5 +281,5 @@ See [CONTRIBUTING.md](CONTRIBUTING.md). The fastest ways to help:
 ---
 
 <p align="center">
-  <sub>Built by <a href="https://github.com/agentic-revolution"><strong>Agentic Revolution</strong></a> — The agent infrastructure company.</sub>
+  <sub>Built by <a href="https://github.com/xeo-labs"><strong>Xeo Labs</strong></a></sub>
 </p>
