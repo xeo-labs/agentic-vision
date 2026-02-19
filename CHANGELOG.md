@@ -1,164 +1,61 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+All notable changes to AgenticVision will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.0] - 2026-02-19
+## [0.1.0] - 2026-02-19
 
-First stable release. All packages at v1.0.0. 397 tests passing. 100-site benchmark: 85.3/100 average.
+First release. Two crates published to crates.io. 88 tests passing across all suites.
 
 ### Added
 
-**Core Runtime**
-- Binary SiteMap format (`.ctx`) — 128-dimensional feature vectors, ~600 bytes/node, 2.7x compression vs JSON, CRC32 integrity checks
-- 6-layer HTTP-first acquisition engine: robots.txt/sitemap discovery → JSON-LD/OpenGraph extraction → CSS-selector pattern engine → platform API discovery → browser fallback
-- Page classification: 16 page types (Home, ProductListing, SearchResults, ProductDetail, Cart, Article, Documentation, Login, Checkout, Profile, ApiEndpoint, Media, Form, Dashboard, Error, Other)
-- Navigation engine: filter by type/features, Dijkstra pathfinding, cosine similarity search, k-nearest neighbors, graph clustering
-- Web Compiler: schema inference from binary maps, 5-target code generation (Python, TypeScript, OpenAPI, GraphQL, MCP)
-- WQL (Web Query Language): SQL-like syntax for web data (`SELECT name, price FROM Product WHERE price < 200 ORDER BY price ASC`)
-- Collective Graph: delta-based map sharing, registry with push/pull/gc, privacy stripping (zeroes session dimensions 112-127)
-- Temporal Intelligence: history store, trend detection, anomaly detection, periodicity analysis, value predictions
-- Live interaction: perceive, act (HTTP-first), watch, browser sessions (fallback)
-- Trust layer: credential vault, PII detection, content sanitization
-- Audit logging: JSONL event log with optional remote sync
-- Background daemon with Unix socket and REST API (Axum, 11 endpoints)
-- Server-Sent Events for real-time mapping progress
-- Web Dashboard at `localhost:7700/dashboard`
-- Interactive REPL with 15 slash commands, tab completion, ghost text hints
-- CLI with 17 commands and global flags (`--json`, `--quiet`, `--verbose`, `--no-color`)
-- Shell completions for bash, zsh, and fish
-- Docker images: lite (~25 MB, HTTP-only) and full (~350 MB, with Chromium)
+- **Core Library (`agentic-vision` v0.1.0)**
+  - Binary `.avis` file format — 64-byte fixed header (magic `0x41564953`, version, capture count, timestamps), JSON payload with embedded JPEG thumbnails and 512-dim float vectors
+  - CLIP ViT-B/32 image embedding via ONNX Runtime (512-dimensional vectors)
+  - Deterministic fallback embedding when ONNX model is not present
+  - Cosine similarity search with f64 intermediate precision
+  - Pixel-level visual diff with 8×8 grid region detection (threshold 30/255)
+  - Image capture from file paths, base64 data, and URLs
+  - JPEG thumbnail generation and storage
+  - Memory-mapped I/O via `memmap2`
+  - Published to crates.io: `cargo install agentic-vision`
 
-**Agent Integration**
-- `cortex plug` command: auto-discovers Claude Desktop, Claude Code, Cursor, Windsurf, Continue, and Cline — injects 9 MCP tools with safe, idempotent configuration
-- MCP server (`@cortex/mcp-server`): 9 tools — map, query, pathfind, act, perceive, compare, auth, compile, wql
-- REST API: 11 endpoints on configurable HTTP port
-- Framework adapters: LangChain, CrewAI, AutoGen, Semantic Kernel, OpenClaw
+- **MCP Server (`agentic-vision-mcp` v0.1.0)**
+  - 10 MCP tools: `vision_capture`, `vision_compare`, `vision_query`, `vision_ocr`, `vision_similar`, `vision_track`, `vision_diff`, `vision_link`, `session_start`, `session_end`
+  - 6 resources via `avis://` URIs (capture, session, timeline, similar, stats, recent)
+  - 4 prompt templates: observe, compare, track, describe
+  - Stdio transport (MCP protocol v2024-11-05)
+  - Session management with named observation sessions
+  - Cross-system linking to AgenticMemory `.amem` nodes via `vision_link`
+  - Published to crates.io: `cargo install agentic-vision-mcp`
 
-**Clients**
-- Python client (`cortex-agent`): map, filter, pathfind, similar, perceive, compare, login, WQL
-- TypeScript client (`cortex-web-client`): map, filter, pathfind, similar, perceive, status
+- **Monorepo structure**
+  - Cargo workspace with `crates/agentic-vision/` (core) and `crates/agentic-vision-mcp/` (MCP server)
+  - Python integration tests in `tests/integration/`
+  - Multi-agent scenario tests (shared files, vision-memory linking, rapid handoff)
 
-**Documentation**
-- Research paper: 10 pages, 8 figures, 13 tables, 22 references (all real benchmark data)
-- SVG architecture, benchmark, and comparison diagrams
-- 11 runnable example scripts
-- Comprehensive docs/ directory with quickstart, concepts, API reference, benchmarks, integration guide, FAQ
-- INSTALL.md with platform-specific notes and troubleshooting
-- LIMITATIONS.md with 17 documented v1.0 constraints
+- **Research Paper**
+  - [Paper II: AgenticVision-MCP — 8 pages, 4 TikZ figures, 7 booktabs tables, 18 references](publication/paper-ii-agentic-vision-mcp/agentic-vision-mcp-paper.pdf)
+  - All benchmark data from real test runs (zero fabrication)
 
-### Performance (Apple M4 Pro, 64 GB, Rust 1.90.0 --release)
+### Test coverage
+
+- Rust core: 35 tests (unit + integration)
+- Python SDK: 47 tests (edge cases, format validation)
+- MCP integration: 3 tests (Python → Rust stdio transport)
+- Multi-agent: 3 tests (shared file, vision-memory linking, 5-agent rapid handoff)
+- Total across all suites: 88 tests
+
+### Performance (Apple M4, macOS 26.2, Rust 1.90.0 --release)
 
 | Operation | Latency |
 |:---|---:|
-| Filter query (10K nodes) | <1 µs |
-| WQL full pipeline (10K nodes) | 86 µs |
-| Pathfind (10K nodes) | 884 µs |
-| Serialize 10K nodes | 134.9 ms |
-| Similarity top-10 (10K nodes) | 42.7 ms |
-| Schema inference (10K nodes) | 96.9 ms |
-| Map a site (HTTP-first) | 3-15 s |
+| Image capture (embed + store) | 47 ms |
+| Similarity search (top-5) | 1-2 ms |
+| Visual diff | <1 ms |
+| MCP tool round-trip | 7.2 ms |
+| Storage per capture | ~4.26 KB |
 
----
-
-## [0.4.5] - 2026-02-18
-
-### Live Visibility — Event Bus, Streaming Progress, Web Dashboard
-
-- **Event Bus** (`events.rs`): 17 typed `CortexEvent` variants covering mapping, actions, auth, queries, and system lifecycle
-- **Progress Infrastructure** (`progress.rs`): Granular mapper telemetry with layer-by-layer progress events
-- **Server-Sent Events**: `GET /api/v1/events` with optional `?domain=` filtering
-- **Web Dashboard**: `http://localhost:7700/dashboard` — live activity feed, progress bars, connected agents
-- **Enhanced Status**: Rich `/api/v1/status` with per-map details
-- **CLI Streaming**: `cortex map` shows live layer-by-layer progress
-
-## [0.4.4] - 2026-02-18
-
-### Interactive REPL — Claude Code-Style Terminal UI
-
-- Interactive mode via `cortex` with no subcommand
-- 15 slash commands, tab completion, ghost text hints, persistent history
-- Animated progress bars during site mapping
-
-## [0.4.3] - 2026-02-18
-
-### Phase 7E — Public Release Completion
-
-- 11 runnable example scripts
-- README overhaul with installation methods and framework integrations
-- Research paper (LaTeX) with 100-site benchmark data
-
-## [0.4.2] - 2026-02-18
-
-- `cortex plug --config-dir` flag for testing
-- `--http-port` flag for `cortex start`
-- Gateway test suite, plug test suite, 100-site test harness v3
-- Python client: `act()` and `compare()` functions
-
-## [0.4.1] - 2026-02-18
-
-### Gateway Layer
-
-- MCP server with 7 tools (map, query, pathfind, act, perceive, compare, auth)
-- REST API on configurable port
-- OpenAPI specification
-- Framework adapters: LangChain, CrewAI, OpenClaw
-- `cortex plug` command for agent auto-discovery
-
-## [0.4.0] - 2026-02-18
-
-- WebMCP integration for high-reliability action execution
-- WebMCP tool discovery
-
-## [0.3.0] - 2026-02-18
-
-- Drag-and-drop discovery via semantic API replay
-- Canvas/WebGL state extraction via accessibility trees
-- HTTP-native OAuth flow
-- Native WebSocket client
-
-## [0.2.1] - 2026-02-18
-
-- Expanded CSS selector coverage for prices, ratings, availability
-- Magento and BigCommerce platform detection
-- 100-site test suite v2
-
-## [0.2.0] - 2026-02-18
-
-### Layered Acquisition Engine (No-Browser Mapping)
-
-- HTTP-first site mapping (sitemap.xml → JSON-LD → CSS selectors → API discovery → browser fallback)
-- Structured data extraction (JSON-LD, OpenGraph, meta tags)
-- Pattern engine with CSS selector database
-- HTTP action discovery and execution
-- Platform action templates (Shopify, WooCommerce, Magento, BigCommerce)
-- HTTP session management and authentication
-
-## [0.1.0] - 2026-02-17
-
-Initial release.
-
-- SiteMap binary format (CTX) with 128-dim feature vectors
-- Cartography engine with Chromium rendering
-- Navigation engine (query, pathfind, similarity, clustering)
-- Live interaction (perceive, act, watch, sessions)
-- Intelligence layer (caching, progressive rendering, smart sampling)
-- Trust & safety (credential vault, PII detection, sanitization)
-- Python and TypeScript clients
-- LangChain, CrewAI, OpenClaw adapters
-- CLI with 9 commands
-- GitHub Actions CI/CD
-
-[1.0.0]: https://github.com/cortex-ai/cortex/releases/tag/v1.0.0
-[0.4.5]: https://github.com/cortex-ai/cortex/releases/tag/v0.4.5
-[0.4.4]: https://github.com/cortex-ai/cortex/releases/tag/v0.4.4
-[0.4.3]: https://github.com/cortex-ai/cortex/releases/tag/v0.4.3
-[0.4.2]: https://github.com/cortex-ai/cortex/releases/tag/v0.4.2
-[0.4.1]: https://github.com/cortex-ai/cortex/releases/tag/v0.4.1
-[0.4.0]: https://github.com/cortex-ai/cortex/releases/tag/v0.4.0
-[0.3.0]: https://github.com/cortex-ai/cortex/releases/tag/v0.3.0
-[0.2.1]: https://github.com/cortex-ai/cortex/releases/tag/v0.2.1
-[0.2.0]: https://github.com/cortex-ai/cortex/releases/tag/v0.2.0
-[0.1.0]: https://github.com/cortex-ai/cortex/releases/tag/v0.1.0
+[0.1.0]: https://github.com/agentic-revolution/agentic-vision/releases/tag/v0.1.0

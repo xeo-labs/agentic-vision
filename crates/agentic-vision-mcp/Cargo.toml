@@ -1,0 +1,43 @@
+[package]
+name = "agentic-vision-mcp"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+description = "MCP server for AgenticVision — universal LLM access to persistent visual memory"
+keywords = ["mcp", "llm", "vision", "agent", "ai"]
+categories = ["development-tools", "multimedia::images"]
+exclude = [".DS_Store"]
+
+[dependencies]
+agentic-vision = { version = "0.1.0", path = "../agentic-vision" }
+image = "0.25"
+
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tokio = { version = "1.35", features = ["full"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+clap = { version = "4.4", features = ["derive"] }
+thiserror = "1.0"
+anyhow = "1.0"
+uuid = { version = "1.6", features = ["v4"] }
+chrono = { version = "0.4", features = ["serde"] }
+base64 = "0.22"
+
+[dev-dependencies]
+tempfile = "3.9"
+tokio-test = "0.4"
+
+[features]
+default = ["stdio"]
+stdio = []
+
+[[bin]]
+name = "agentic-vision-mcp"
+path = "src/main.rs"
+
+[lib]
+name = "agentic_vision_mcp"
+path = "src/lib.rs"

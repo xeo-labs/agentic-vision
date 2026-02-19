@@ -1,226 +1,230 @@
 # Installation Guide
 
-## Requirements
+Three ways to install AgenticVision, depending on your use case.
 
-- **OS:** macOS (arm64/x86_64), Linux (x86_64/aarch64)
-- **Rust:** 1.75+ (for `cargo install`)
-- **Node.js:** 18+ (for TypeScript client / MCP server)
-- **Python:** 3.9+ (for Python client)
+---
 
-## Quick Install
+## 1. MCP Server (recommended for most users)
 
-### One-liner (macOS / Linux)
+The MCP server gives any MCP-compatible LLM client persistent visual memory. Requires **Rust 1.70+**.
 
 ```bash
-curl -fsSL https://cortex.dev/install | bash
+cargo install agentic-vision-mcp
 ```
 
-This downloads the pre-built binary, adds it to your `PATH`, and runs `cortex doctor` to verify the installation.
+### Configure Claude Desktop
 
-### From source (Rust)
-
-```bash
-cargo install cortex-runtime
-```
-
-Compiles from crates.io. Requires Rust 1.75+ and a C linker.
-
-### Homebrew (macOS)
-
-```bash
-brew install cortex-ai/cortex/cortex
-```
-
-### npm (wrapper)
-
-```bash
-npm install -g @cortex/cli
-```
-
-Installs a thin npm wrapper that downloads the appropriate platform binary on first use.
-
-### Docker
-
-```bash
-# Lite image — HTTP-only, no Chromium (~25 MB)
-docker run -p 7700:7700 cortex-ai/cortex:lite
-
-# Full image — includes Chromium for fallback rendering (~350 MB)
-docker run -p 7700:7700 cortex-ai/cortex:full
-```
-
-## Client Libraries
-
-### Python
-
-```bash
-pip install cortex-agent
-```
-
-Requires the Cortex runtime to be installed and running. The daemon starts automatically on first use.
-
-### TypeScript / Node.js
-
-```bash
-npm install cortex-web-client
-```
-
-Requires the Cortex runtime to be installed and running.
-
-## Agent Integration
-
-### Auto-discover and connect all agents
-
-```bash
-cortex plug
-```
-
-This auto-detects AI agents on your system (Claude Desktop, Claude Code, Cursor, Windsurf, Continue, Cline) and configures them to use Cortex via MCP. Safe and idempotent — run it as many times as you like.
-
-### Manual MCP configuration
-
-If `cortex plug` doesn't detect your agent, add this to your agent's MCP config:
+Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
 
 ```json
 {
   "mcpServers": {
-    "cortex": {
-      "command": "npx",
-      "args": ["-y", "@cortex/mcp-server"]
+    "vision": {
+      "command": "agentic-vision-mcp",
+      "args": ["serve", "--vision", "~/vision.avis"]
     }
   }
 }
 ```
 
-### Check status
+### Configure VS Code / Cursor
 
-```bash
-cortex plug --status   # See which agents are connected
-cortex plug --remove   # Clean removal from all agents
-cortex plug --list     # List detected agent config files
+Add to `.vscode/settings.json`:
+
+```json
+{
+  "mcp.servers": {
+    "agentic-vision": {
+      "command": "agentic-vision-mcp",
+      "args": ["serve", "--vision", "${workspaceFolder}/.vision/project.avis"]
+    }
+  }
+}
 ```
 
-## Verify Installation
+### Configure Windsurf
 
-```bash
-cortex doctor
+Add to `~/.codeium/windsurf/mcp_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "vision": {
+      "command": "agentic-vision-mcp",
+      "args": ["serve", "--vision", "~/vision.avis"]
+    }
+  }
+}
 ```
 
-This checks:
-- Runtime binary is on PATH
-- Daemon can start
-- Socket connection works
-- Chromium availability (optional)
-- Network connectivity
+### Verify
 
-## First Run
+Once connected, the LLM gains access to tools like `vision_capture`, `vision_query`, `vision_similar`, `vision_compare`, `vision_diff`, and `vision_link`. Test by asking the LLM:
+
+> "Capture a screenshot and describe what you see."
+
+The LLM should call `vision_capture` and confirm the image was stored.
+
+---
+
+## 2. Core Library (for Rust projects)
+
+The core library provides image capture, CLIP embedding, similarity search, and the `.avis` file format. Requires **Rust 1.70+**.
 
 ```bash
-# Map your first site
-cortex map example.com
-
-# Check what was mapped
-cortex query example.com
-
-# Full workflow
-cortex map amazon.com && cortex compile amazon.com
-cortex wql "SELECT url, page_type FROM Node LIMIT 5"
+cargo install agentic-vision
 ```
 
-The daemon starts automatically. Chromium is downloaded on-demand only if a page requires browser rendering (rare — 93% of sites work via HTTP).
+### Use as a dependency
 
-## Environment Variables
+Add to your `Cargo.toml`:
 
-| Variable | Default | Description |
-|:---------|:--------|:------------|
-| `CORTEX_SOCKET` | `/tmp/cortex.sock` | Unix socket path |
-| `CORTEX_DATA_DIR` | `~/.cortex` | Data directory for maps and cache |
-| `CORTEX_LOG_LEVEL` | `info` | Log verbosity (trace, debug, info, warn, error) |
-| `CORTEX_MAX_NODES` | `50000` | Default max nodes per map |
-| `CORTEX_TIMEOUT_MS` | `30000` | Default mapping timeout |
-| `CORTEX_HTTP_PORT` | (disabled) | REST API port (e.g. `7700`) |
-| `CORTEX_CHROMIUM_PATH` | (auto-detected) | Custom Chromium binary path |
+```toml
+[dependencies]
+agentic-vision = "0.1"
+```
+
+### Verify
+
+```rust
+use agentic_vision::VisionStore;
+
+let store = VisionStore::open("test.avis")?;
+println!("Captures: {}", store.count());
+```
+
+---
+
+## 3. Combined with AgenticMemory
+
+AgenticVision links to [AgenticMemory](https://github.com/agentic-revolution/agentic-memory) for full cognitive + visual agent memory. Run both MCP servers:
+
+```json
+{
+  "mcpServers": {
+    "memory": {
+      "command": "agentic-memory-mcp",
+      "args": ["serve", "--memory", "~/brain.amem"]
+    },
+    "vision": {
+      "command": "agentic-vision-mcp",
+      "args": ["serve", "--vision", "~/vision.avis"]
+    }
+  }
+}
+```
+
+The `vision_link` tool bridges captures to memory nodes. An agent can associate what it *sees* with what it *knows*.
+
+---
+
+## Build from Source
+
+```bash
+git clone https://github.com/agentic-revolution/agentic-vision.git
+cd agentic-vision
+
+# Build entire workspace (core library + MCP server)
+cargo build --release
+
+# Install core library
+cargo install --path crates/agentic-vision
+
+# Install MCP server
+cargo install --path crates/agentic-vision-mcp
+```
+
+### CLIP Model (optional)
+
+For full CLIP embedding support, place the ONNX model in the `models/` directory:
+
+```bash
+# The model is ~350 MB
+models/clip-vit-b32-visual.onnx
+```
+
+Without the model, AgenticVision uses a deterministic fallback embedding (suitable for testing and development).
+
+### Run tests
+
+```bash
+# All workspace tests (core + MCP: 35 tests)
+cargo test --workspace
+
+# Core library only
+cargo test -p agentic-vision
+
+# MCP server only
+cargo test -p agentic-vision-mcp
+
+# Python integration tests (requires release build)
+cargo build --release
+python tests/integration/test_mcp_clients.py
+python tests/integration/test_multi_agent.py
+```
+
+---
+
+## Package Registry Links
+
+| Package | Registry | Install |
+|:---|:---|:---|
+| **agentic-vision** | [crates.io](https://crates.io/crates/agentic-vision) | `cargo install agentic-vision` |
+| **agentic-vision-mcp** | [crates.io](https://crates.io/crates/agentic-vision-mcp) | `cargo install agentic-vision-mcp` |
+
+---
+
+## Requirements
+
+| Component | Minimum version |
+|:---|:---|
+| Rust | 1.70+ (for building from source or `cargo install`) |
+| OS | macOS, Linux |
+| Python | 3.10+ (only for integration tests) |
+
+---
 
 ## Troubleshooting
 
-### "Cortex daemon not running"
+### `agentic-vision-mcp: command not found` after `cargo install`
+
+Make sure `~/.cargo/bin` is in your PATH:
 
 ```bash
-cortex start          # Start the daemon manually
-cortex doctor         # Diagnose the issue
+export PATH="$HOME/.cargo/bin:$PATH"
 ```
 
-### "Connection refused" on socket
+Add this line to your `~/.zshrc` or `~/.bashrc` to make it permanent.
 
-The socket file may be stale. Remove it and restart:
+### CLIP model not found
+
+AgenticVision works without the CLIP ONNX model — it falls back to a deterministic embedding function. For production use with real similarity search, download the CLIP ViT-B/32 visual ONNX model and place it in `models/clip-vit-b32-visual.onnx`.
+
+### MCP server doesn't respond
+
+Check that the binary is accessible:
 
 ```bash
-rm /tmp/cortex.sock
-cortex restart
+which agentic-vision-mcp
+agentic-vision-mcp serve --vision /tmp/test.avis
 ```
 
-### Chromium installation fails
-
-Cortex downloads Chromium for Testing on-demand. If this fails behind a proxy:
+The server communicates via stdin/stdout (MCP stdio transport). If running manually, send a JSON-RPC initialize request to verify:
 
 ```bash
-cortex install                    # Manual Chromium download
-CORTEX_CHROMIUM_PATH=/path/to/chromium cortex start   # Use existing browser
+echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"1.0"}}}' | agentic-vision-mcp serve --vision /tmp/test.avis
 ```
 
-Most sites (93%) don't need Chromium at all. Use `cortex map --no-browser` to skip browser fallback entirely.
-
-### macOS: "cortex" can't be opened because Apple cannot check it for malicious software
+### macOS: "can't be opened because Apple cannot check it for malicious software"
 
 ```bash
-xattr -d com.apple.quarantine $(which cortex)
+xattr -d com.apple.quarantine $(which agentic-vision-mcp)
 ```
 
-### Permission denied on socket
+### Build fails with ONNX Runtime errors
+
+The `ort` crate (ONNX Runtime bindings) requires a C++ compiler. On macOS, ensure Xcode Command Line Tools are installed:
 
 ```bash
-chmod 755 /tmp/cortex.sock
-# Or use a user-local socket:
-CORTEX_SOCKET=~/.cortex/cortex.sock cortex start
-```
-
-## Uninstall
-
-```bash
-# Remove the binary
-cargo uninstall cortex-runtime
-
-# Remove agent integrations
-cortex plug --remove
-
-# Remove data
-rm -rf ~/.cortex
-
-# Remove socket
-rm -f /tmp/cortex.sock
-```
-
-## Platform Notes
-
-### macOS (Apple Silicon)
-Native arm64 binary. Best performance. All benchmarks in the documentation were measured on Apple M4 Pro.
-
-### macOS (Intel)
-x86_64 binary via Rosetta 2 or native compilation. Performance within 2x of Apple Silicon.
-
-### Linux (x86_64)
-Native compilation. Requires glibc 2.31+ or musl for static builds.
-
-### Linux (aarch64)
-Native compilation on ARM64 servers (AWS Graviton, Ampere Altra). Full feature parity.
-
-### Windows
-Not natively supported. Use WSL2 or Docker:
-```bash
-# WSL2
-wsl --install
-# Then follow Linux instructions inside WSL
-
-# Docker
-docker run -p 7700:7700 cortex-ai/cortex:lite
+xcode-select --install
 ```

@@ -1,11 +1,21 @@
-# Build artifacts
-target/
-node_modules/
-dist/
+# Rust build artifacts
+**/target/
+Cargo.lock
+
+# ONNX models (large binaries)
+models/*.onnx
+
+# Vision data files
+*.avis
+
+# Python build artifacts
 __pycache__/
 *.pyc
 *.egg-info/
 .venv/
+dist/
+node_modules/
+.pytest_cache/
 
 # IDE
 .idea/
@@ -30,12 +40,15 @@ Thumbs.db
 docs/planning/
 scripts/claude-session.sh
 
+# Test reports (generated, not source)
+tests/reports/
+
 # LaTeX build artifacts (canonical PDF kept in publication/)
-publication/*.aux
-publication/*.log
-publication/*.bbl
-publication/*.blg
-publication/*.out
-publication/*.fls
-publication/*.fdb_latexmk
-publication/*.synctex.gz
+publication/**/*.aux
+publication/**/*.log
+publication/**/*.bbl
+publication/**/*.blg
+publication/**/*.out
+publication/**/*.fls
+publication/**/*.fdb_latexmk
+publication/**/*.synctex.gz
