@@ -1,4 +1,4 @@
-# Quickstart: From Zero to First Map in 60 Seconds
+# Quickstart: From Zero to Typed API in 90 Seconds
 
 ## Install
 
@@ -33,21 +33,53 @@ Map complete:
   Duration: 4.32s
 ```
 
-## Query the Map
+## Compile Into a Typed API
 
 ```bash
-cortex query example.com --type article --limit 5
+cortex compile example.com
+```
+
+This infers typed schemas from the map and generates client libraries:
+
+```
+Compiled example.com:
+  Models:  3 (Article, Home, Contact)
+  Fields:  12 total
+  Actions: 2
+  Output:  ~/.cortex/compiled/example.com/
+           ├── client.py
+           ├── client.ts
+           ├── openapi.yaml
+           ├── schema.graphql
+           └── mcp.json
+```
+
+## Query with WQL
+
+```bash
+# SQL-like queries on your mapped data
+cortex wql "SELECT * FROM Article ORDER BY content_length DESC LIMIT 5"
 ```
 
 ## Use from Python
 
 ```python
-import cortex_client
+from cortex_client import CortexClient
 
-# Map a site (auto-starts daemon if needed)
-site = cortex_client.map("example.com")
+client = CortexClient()
 
-# Find product pages
+# Map and compile
+site = client.map("example.com")
+schema = client.compile("example.com")
+
+# Use typed models
+for model in schema.models:
+    print(f"{model.name}: {len(model.fields)} fields")
+
+# Query with WQL
+results = client.wql("SELECT * FROM Article LIMIT 5")
+
+# Or use the low-level map API
 products = site.filter(page_type=4, limit=10)
 for p in products:
     print(f"{p.url} (confidence: {p.confidence:.2f})")
@@ -67,6 +99,21 @@ const results = await site.filter({ pageType: 4, limit: 10 });
 results.forEach(r => console.log(r.url));
 ```
 
+## Track Changes Over Time
+
+```bash
+# Push maps to the registry for temporal tracking
+cortex registry list
+
+# Query price history
+cortex history amazon.com "https://amazon.com/product/123" --dim price --since 2025-01-01
+
+# Detect patterns
+cortex patterns amazon.com "https://amazon.com/product/123" --dim price
+```
+
+See [Temporal Intelligence](temporal.md), [Web Compiler](web-compiler.md), [WQL](wql.md), and [Collective Graph](collective-graph.md) for full details.
+
 ## Other Useful Commands
 
 ```bash
@@ -81,6 +128,10 @@ cortex pathfind example.com --from 0 --to 42
 
 # Machine-readable output
 cortex map example.com --json
+
+# Manage the registry
+cortex registry list
+cortex registry stats
 
 # Clear cached maps
 cortex cache clear

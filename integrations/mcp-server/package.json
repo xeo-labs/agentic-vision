@@ -1,9 +1,18 @@
 {
   "name": "@cortex/mcp-server",
-  "version": "0.3.1",
+  "version": "1.0.0",
   "description": "Model Context Protocol server for Cortex — translates MCP tool calls into Cortex protocol messages over Unix socket",
+  "author": "Cortex Contributors",
   "type": "module",
   "license": "Apache-2.0",
+  "homepage": "https://cortex.dev",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cortex-ai/cortex.git",
+    "directory": "integrations/mcp-server"
+  },
+  "bugs": "https://github.com/cortex-ai/cortex/issues",
+  "keywords": ["mcp", "cortex", "ai", "agent", "web", "cartography"],
   "bin": {
     "cortex-mcp-server": "./dist/index.js"
   },

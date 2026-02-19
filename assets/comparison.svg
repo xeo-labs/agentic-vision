@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 280">
+  <defs>
+    <linearGradient id="bgComp" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0f172a" />
+      <stop offset="100%" style="stop-color:#1e293b" />
+    </linearGradient>
+  </defs>
+
+  <rect width="800" height="280" rx="12" fill="url(#bgComp)" />
+
+  <!-- Title -->
+  <text x="400" y="30" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" fill="#e2e8f0" font-weight="700">Cortex vs. Browser-Based Web Agents</text>
+
+  <!-- Column headers -->
+  <text x="210" y="58" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#94a3b8" font-weight="600">Playwright</text>
+  <text x="330" y="58" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#94a3b8" font-weight="600">Puppeteer</text>
+  <text x="450" y="58" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#94a3b8" font-weight="600">Selenium</text>
+  <text x="570" y="58" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#94a3b8" font-weight="600">Browserbase</text>
+  <text x="700" y="58" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="#3b82f6" font-weight="700">Cortex</text>
+
+  <!-- Separator line -->
+  <line x1="30" y1="65" x2="770" y2="65" stroke="#334155" stroke-width="1" />
+
+  <!-- Row: Browser required -->
+  <text x="100" y="85" text-anchor="end" font-family="system-ui, sans-serif" font-size="10" fill="#94a3b8">Browser required</text>
+  <text x="210" y="85" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#f87171">Always</text>
+  <text x="330" y="85" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#f87171">Always</text>
+  <text x="450" y="85" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#f87171">Always</text>
+  <text x="570" y="85" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#f87171">Cloud</text>
+  <text x="700" y="85" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#4ade80" font-weight="600">Never*</text>
+
+  <!-- Row: Package size -->
+  <text x="100" y="108" text-anchor="end" font-family="system-ui, sans-serif" font-size="10" fill="#94a3b8">Package size</text>
+  <text x="210" y="108" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#fbbf24">~280 MB</text>
+  <text x="330" y="108" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#fbbf24">~300 MB</text>
+  <text x="450" y="108" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#fbbf24">~350 MB</text>
+  <text x="570" y="108" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#94a3b8">~0 (cloud)</text>
+  <text x="700" y="108" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#4ade80" font-weight="600">17 MB</text>
+
+  <!-- Row: Site-level graph -->
+  <text x="100" y="131" text-anchor="end" font-family="system-ui, sans-serif" font-size="10" fill="#94a3b8">Site-level graph</text>
+  <text x="210" y="131" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#f87171">No</text>
+  <text x="330" y="131" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#f87171">No</text>
+  <text x="450" y="131" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#f87171">No</text>
+  <text x="570" y="131" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#f87171">No</text>
+  <text x="700" y="131" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#4ade80" font-weight="600">Yes</text>
+
+  <!-- Row: Latency per site -->
+  <text x="100" y="154" text-anchor="end" font-family="system-ui, sans-serif" font-size="10" fill="#94a3b8">Map a site</text>
+  <text x="210" y="154" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#fbbf24">20-120s</text>
+  <text x="330" y="154" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#fbbf24">20-120s</text>
+  <text x="450" y="154" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#fbbf24">20-120s</text>
+  <text x="570" y="154" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#fbbf24">20-120s</text>
+  <text x="700" y="154" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#4ade80" font-weight="600">3-15s</text>
+
+  <!-- Row: Query latency -->
+  <text x="100" y="177" text-anchor="end" font-family="system-ui, sans-serif" font-size="10" fill="#94a3b8">Query latency</text>
+  <text x="210" y="177" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#94a3b8">N/A</text>
+  <text x="330" y="177" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#94a3b8">N/A</text>
+  <text x="450" y="177" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#94a3b8">N/A</text>
+  <text x="570" y="177" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#94a3b8">N/A</text>
+  <text x="700" y="177" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#4ade80" font-weight="600">&lt;1 µs</text>
+
+  <!-- Row: LLM calls -->
+  <text x="100" y="200" text-anchor="end" font-family="system-ui, sans-serif" font-size="10" fill="#94a3b8">LLM calls to navigate</text>
+  <text x="210" y="200" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#fbbf24">10-30</text>
+  <text x="330" y="200" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#fbbf24">10-30</text>
+  <text x="450" y="200" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#fbbf24">10-30</text>
+  <text x="570" y="200" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#fbbf24">10-30</text>
+  <text x="700" y="200" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#4ade80" font-weight="600">0</text>
+
+  <!-- Row: Structured data -->
+  <text x="100" y="223" text-anchor="end" font-family="system-ui, sans-serif" font-size="10" fill="#94a3b8">Structured data</text>
+  <text x="210" y="223" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#f87171">No</text>
+  <text x="330" y="223" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#f87171">No</text>
+  <text x="450" y="223" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#f87171">No</text>
+  <text x="570" y="223" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#f87171">No</text>
+  <text x="700" y="223" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#4ade80" font-weight="600">Primary</text>
+
+  <!-- Row: Idle memory -->
+  <text x="100" y="246" text-anchor="end" font-family="system-ui, sans-serif" font-size="10" fill="#94a3b8">Idle memory</text>
+  <text x="210" y="246" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#fbbf24">~500 MB</text>
+  <text x="330" y="246" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#fbbf24">~500 MB</text>
+  <text x="450" y="246" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#fbbf24">~500 MB</text>
+  <text x="570" y="246" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#94a3b8">0 (cloud)</text>
+  <text x="700" y="246" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#4ade80" font-weight="600">~20 MB</text>
+
+  <!-- Footnote -->
+  <text x="400" y="270" text-anchor="middle" font-family="system-ui, sans-serif" font-size="9" fill="#475569">*93% of sites mapped via HTTP only. Browser fallback available for the remaining ~5%.</text>
+</svg>

@@ -71,3 +71,11 @@ products = site.filter(page_type=4)
 ## Session Timeout
 
 Sessions expire after 1 hour of inactivity by default.
+
+## Next Steps
+
+After mapping and acting on sites, consider:
+
+- [Compiling the map](web-compiler.md) into a typed API for programmatic access
+- [Querying with WQL](wql.md) to filter and compare data across sites
+- [Tracking changes](temporal.md) to detect price drops, availability, and trends

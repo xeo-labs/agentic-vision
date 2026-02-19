@@ -1,6 +1,6 @@
 # Known Limitations
 
-Cortex v0.4 uses a layered HTTP acquisition architecture with advanced action discovery (drag-drop, canvas, WebSocket, WebMCP). Most mapping is done without a browser. This eliminates many v0.1 limitations (bot detection, SPA shells, HTTP/2 browser errors) but introduces new ones.
+Cortex v1.0 uses a layered HTTP acquisition architecture with advanced action discovery, a Web Compiler for typed schema inference, a Collective Web Graph for map sharing, Temporal Intelligence for change tracking, and WQL for cross-site queries. Most mapping is done without a browser.
 
 ## 1. Sites Without Structured Data or Useful HTML Patterns (~2-5% of sites)
 
@@ -53,3 +53,41 @@ The `perceive` command and live page analysis require a working Chromium install
 ## 13. Timeout-Sensitive Sites
 
 Some sites with complex sitemaps, heavy JavaScript, or slow server responses may exceed the default 30-second mapping timeout. Sites like bestbuy.com, netflix.com, and washingtonpost.com consistently require longer timeouts. Use `max_time_ms` parameter to increase the timeout for known slow sites.
+
+## 14. Temporal Intelligence — Sparse Data Limitations (v1.0)
+
+Temporal pattern detection requires sufficient historical data:
+
+- **Trend detection** requires at least 3 data points. With fewer, the engine returns `None` rather than an unreliable result.
+- **Predictions** use simple linear regression. They work well for linear trends but cannot capture seasonal, exponential, or other non-linear patterns.
+- **Anomaly detection** needs 5+ data points to establish a meaningful baseline. With less data, anomalies cannot be reliably distinguished from normal variation.
+- **Periodicity detection** requires at least 2 full cycles of the pattern to detect. Weekly patterns need 2+ weeks of data.
+
+Cortex is honest about these limitations: it returns `None`/empty rather than fabricating unreliable patterns.
+
+## 15. Schema Inference Is Heuristic (v1.0)
+
+The Web Compiler infers schemas from feature vector distributions, not from source code analysis:
+
+- Sites with very few pages (< 3) may not produce useful models
+- Mixed-content pages that don't fit standard page types may be misclassified
+- Custom e-commerce platforms with non-standard feature patterns may produce incomplete Product models
+- Generated client code is a starting point; complex business logic needs manual additions
+
+## 16. WQL Query Language Limitations (v1.0)
+
+WQL is a subset of SQL designed for web data:
+
+- Domain names with hyphens (`my-site.com`) are not supported in ACROSS clauses — use the programmatic API instead
+- Temporal functions (`PREDICTED()`, `TREND()`, `HISTORY()`) are parsed but executor support is in progress
+- JOIN queries are parsed but cross-model joins are not yet executed
+- No aggregation functions (`COUNT`, `SUM`, `AVG`) yet
+- No subqueries or nested expressions
+
+## 17. Collective Graph Is Local-Only (v1.0)
+
+The map registry currently supports only local push/pull operations:
+
+- Peer-to-peer synchronization between Cortex instances is planned for v2.0
+- Privacy stripping is conservative — all session features (dims 112-127) are zeroed before sharing
+- There is no authentication or access control on the local registry

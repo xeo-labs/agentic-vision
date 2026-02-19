@@ -1,11 +1,32 @@
 [project]
 name = "cortex-client"
-version = "0.1.0"
-description = "Thin client for the Cortex web cartography runtime"
-license = { text = "Apache-2.0" }
+version = "1.0.0"
+description = "Thin client for the Cortex web cartography runtime — map, compile, and query websites from Python"
+authors = [{name = "Cortex Contributors"}]
+license = {text = "Apache-2.0"}
 requires-python = ">=3.10"
 readme = "README.md"
+keywords = ["web", "cartography", "agent", "mcp", "navigation", "scraping", "ai"]
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Software Development :: Libraries",
+]
 dependencies = []
+
+[project.urls]
+Homepage = "https://cortex.dev"
+Repository = "https://github.com/cortex-ai/cortex"
+Documentation = "https://cortex.dev/docs"
+Issues = "https://github.com/cortex-ai/cortex/issues"
+Changelog = "https://github.com/cortex-ai/cortex/blob/main/CHANGELOG.md"
 
 [project.optional-dependencies]
 dev = ["pytest>=8.0", "pytest-asyncio>=0.24", "ruff>=0.8", "mypy>=1.13"]

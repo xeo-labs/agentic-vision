@@ -542,7 +542,51 @@ async fn handle_map(req: &protocol::Request, state: Arc<SharedState>) -> String 
                 jsonld_coverage: 0.0,
             });
 
-            // Cache the map
+            // Persist to disk cache
+            let map_path = match crate::intelligence::cache::MapCache::default_cache() {
+                Ok(mut disk_cache) => match disk_cache.cache_map(&domain, &sitemap) {
+                    Ok(path) => {
+                        info!("MAP persisted to disk: {}", path.display());
+                        Some(path.display().to_string())
+                    }
+                    Err(e) => {
+                        warn!("failed to persist map to disk: {e}");
+                        None
+                    }
+                },
+                Err(e) => {
+                    warn!("failed to open disk cache: {e}");
+                    None
+                }
+            };
+
+            // Push to local registry for temporal history tracking
+            if let Ok(registry_dir) =
+                crate::intelligence::cache::MapCache::default_cache().map(|_| {
+                    let home = dirs::home_dir().unwrap_or_else(|| std::path::PathBuf::from("."));
+                    home.join(".cortex").join("registry")
+                })
+            {
+                match crate::collective::registry::LocalRegistry::new(registry_dir) {
+                    Ok(mut registry) => {
+                        // Compute delta if we have a previous version
+                        let prev = registry.pull(&domain).ok().flatten();
+                        let delta = prev.map(|(old_map, _)| {
+                            crate::collective::delta::compute_delta(&old_map, &sitemap, "local")
+                        });
+                        if let Err(e) = registry.push(&domain, &sitemap, delta) {
+                            warn!("failed to push map to registry: {e}");
+                        } else {
+                            info!("MAP pushed to registry: {domain}");
+                        }
+                    }
+                    Err(e) => {
+                        warn!("failed to open registry: {e}");
+                    }
+                }
+            }
+
+            // Cache in memory
             let maps_lock = Arc::clone(&state.maps);
             let mut map_store = maps_lock.write().await;
             map_store.insert(domain.clone(), sitemap);
@@ -555,7 +599,7 @@ async fn handle_map(req: &protocol::Request, state: Arc<SharedState>) -> String 
                     "node_count": node_count,
                     "edge_count": edge_count,
                     "cached": false,
-                    "map_path": null,
+                    "map_path": map_path,
                 }),
             )
         }
@@ -687,6 +731,31 @@ async fn build_http_fallback_map(
     info!(
         "fallback map for {domain}: {node_count} nodes, {edge_count} edges (from {fallback_count} URLs)"
     );
+
+    // Persist fallback map to disk cache
+    if let Ok(mut disk_cache) = crate::intelligence::cache::MapCache::default_cache() {
+        match disk_cache.cache_map(&domain, &fallback_map) {
+            Ok(path) => info!("fallback map persisted to disk: {}", path.display()),
+            Err(e) => warn!("failed to persist fallback map to disk: {e}"),
+        }
+    }
+
+    // Push to local registry for temporal history tracking
+    {
+        let home = dirs::home_dir().unwrap_or_else(|| std::path::PathBuf::from("."));
+        let registry_dir = home.join(".cortex").join("registry");
+        if let Ok(mut registry) = crate::collective::registry::LocalRegistry::new(registry_dir) {
+            let prev = registry.pull(&domain).ok().flatten();
+            let delta = prev.map(|(old_map, _)| {
+                crate::collective::delta::compute_delta(&old_map, &fallback_map, "local")
+            });
+            if let Err(e) = registry.push(&domain, &fallback_map, delta) {
+                warn!("failed to push fallback map to registry: {e}");
+            } else {
+                info!("fallback MAP pushed to registry: {domain}");
+            }
+        }
+    }
 
     let mut map_store = maps.write().await;
     map_store.insert(domain, fallback_map);

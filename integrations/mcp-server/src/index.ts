@@ -64,7 +64,7 @@ const TOOLS = [
         page_type: {
           type: "integer",
           description:
-            "Filter by page type code (e.g. 4=product_detail, 6=article)",
+            "Filter by page type: 1=home, 2=product_listing, 3=search_results, 4=product_detail, 5=cart, 6=article, 7=documentation, 8=login, 9=checkout, 10=profile, 11=api_endpoint, 12=media, 13=form, 14=dashboard, 15=error, 16=other",
         },
         price_lt: { type: "number", description: "Max price filter" },
         price_gt: { type: "number", description: "Min price filter" },
@@ -344,7 +344,7 @@ async function main(): Promise<void> {
   const server = new Server(
     {
       name: "cortex",
-      version: "0.3.1",
+      version: "1.0.0",
     },
     {
       capabilities: {

@@ -54,13 +54,52 @@ pub struct MapCache {
 
 impl MapCache {
     /// Create a new map cache in the given directory.
+    ///
+    /// On creation, scans the cache directory for existing `.ctx` files and
+    /// rebuilds the in-memory index so that previously cached maps are
+    /// immediately available for lookup.
     pub fn new(cache_dir: PathBuf, default_ttl: Duration) -> Result<Self> {
         fs::create_dir_all(&cache_dir)
             .with_context(|| format!("failed to create cache dir: {}", cache_dir.display()))?;
 
+        let mut index = HashMap::new();
+
+        // Scan the cache directory for existing .ctx files and rebuild the index.
+        if let Ok(entries) = fs::read_dir(&cache_dir) {
+            for entry in entries.flatten() {
+                let path = entry.path();
+                if path.extension().and_then(|e| e.to_str()) == Some("ctx") {
+                    if let Some(stem) = path.file_stem().and_then(|s| s.to_str()) {
+                        // Reverse the filename encoding: underscores back to colons
+                        let domain = stem.replace('_', ":");
+                        // Use the file's modification time as cached_at
+                        let cached_at = entry
+                            .metadata()
+                            .and_then(|m| m.modified())
+                            .unwrap_or_else(|_| SystemTime::now());
+                        index.insert(
+                            domain,
+                            CacheEntry {
+                                path,
+                                cached_at,
+                                ttl: default_ttl,
+                                last_accessed: Instant::now(),
+                            },
+                        );
+                    }
+                }
+            }
+        }
+
+        tracing::debug!(
+            "MapCache initialized: {} entries from {}",
+            index.len(),
+            cache_dir.display()
+        );
+
         Ok(Self {
             cache_dir,
-            index: HashMap::new(),
+            index,
             default_ttl,
             max_entries: DEFAULT_MAX_ENTRIES,
         })
@@ -137,6 +176,24 @@ impl MapCache {
             .with_context(|| format!("failed to deserialize cached map for {}", domain))?;
 
         Ok(Some(map))
+    }
+
+    /// Load all cached (non-expired) SiteMaps, returning a domain → SiteMap map.
+    pub fn load_all_maps(&mut self) -> Result<HashMap<String, SiteMap>> {
+        let domains: Vec<String> = self
+            .index
+            .iter()
+            .filter(|(_, entry)| !entry.is_expired())
+            .map(|(domain, _)| domain.clone())
+            .collect();
+
+        let mut maps = HashMap::new();
+        for domain in domains {
+            if let Some(map) = self.load_map(&domain)? {
+                maps.insert(domain, map);
+            }
+        }
+        Ok(maps)
     }
 
     /// Invalidate (remove) a cached map.

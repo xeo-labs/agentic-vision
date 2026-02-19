@@ -7,24 +7,8 @@ use anyhow::Result;
 use clap::{CommandFactory, Parser, Subcommand};
 use clap_complete::Shell;
 
-mod acquisition;
-mod audit;
-mod cartography;
-mod cli;
-mod events;
-mod extraction;
-mod intelligence;
-mod live;
-mod map;
-mod navigation;
-mod pool;
-mod progress;
-mod protocol;
-mod renderer;
-mod rest;
-mod server;
-mod stealth;
-mod trust;
+use cortex_runtime::cli;
+use cortex_runtime::server;
 
 #[derive(Parser)]
 #[command(
@@ -142,6 +126,50 @@ enum Commands {
         /// Shell type (bash, zsh, fish, powershell)
         shell: Shell,
     },
+    /// Compile a website into a typed API with auto-generated clients
+    Compile {
+        /// Domain to compile (must be previously mapped)
+        domain: String,
+        /// Unify all compiled schemas
+        #[arg(long)]
+        all: bool,
+        /// Output directory (default: ~/.cortex/compiled/<domain>/)
+        #[arg(long)]
+        output: Option<String>,
+    },
+    /// Execute a WQL (Web Query Language) query
+    Wql {
+        /// WQL query string (e.g. "SELECT name, price FROM Product WHERE price < 200 LIMIT 10")
+        query: String,
+    },
+    /// Manage the local map registry
+    Registry {
+        #[command(subcommand)]
+        action: RegistryAction,
+    },
+    /// Query temporal history for a node
+    History {
+        /// Domain to query
+        domain: String,
+        /// URL of the node
+        url: String,
+        /// Feature dimension name (e.g. "price")
+        #[arg(long)]
+        dim: String,
+        /// Start date (ISO 8601)
+        #[arg(long)]
+        since: String,
+    },
+    /// Detect temporal patterns for a node
+    Patterns {
+        /// Domain to query
+        domain: String,
+        /// URL of the node
+        url: String,
+        /// Feature dimension name (e.g. "price")
+        #[arg(long)]
+        dim: String,
+    },
     /// Auto-discover AI agents and inject Cortex MCP server
     Plug {
         /// Show detected agents without injecting
@@ -169,6 +197,16 @@ enum CacheAction {
         /// Domain to clear (omit to clear all)
         domain: Option<String>,
     },
+}
+
+#[derive(Subcommand)]
+enum RegistryAction {
+    /// List all maps in the local registry
+    List,
+    /// Show registry statistics
+    Stats,
+    /// Garbage collect old deltas
+    Gc,
 }
 
 #[tokio::main]
@@ -235,6 +273,26 @@ async fn main() -> Result<()> {
             let mut cmd = Cli::command();
             clap_complete::generate(shell, &mut cmd, "cortex", &mut std::io::stdout());
             Ok(())
+        }
+        Some(Commands::Compile {
+            domain,
+            all,
+            output,
+        }) => cli::compile_cmd::run(&domain, all, output.as_deref()).await,
+        Some(Commands::Wql { query }) => cli::wql_cmd::run(&query).await,
+        Some(Commands::Registry { action }) => match action {
+            RegistryAction::List => cli::registry_cmd::run_list().await,
+            RegistryAction::Stats => cli::registry_cmd::run_stats().await,
+            RegistryAction::Gc => cli::registry_cmd::run_gc().await,
+        },
+        Some(Commands::History {
+            domain,
+            url,
+            dim,
+            since,
+        }) => cli::temporal_cmd::run_history(&domain, &url, &dim, &since).await,
+        Some(Commands::Patterns { domain, url, dim }) => {
+            cli::temporal_cmd::run_patterns(&domain, &url, &dim).await
         }
         Some(Commands::Plug {
             list,

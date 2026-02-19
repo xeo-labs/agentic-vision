@@ -24,7 +24,7 @@ pub async fn run(
 
     if !quiet && !json_mode {
         println!();
-        println!("  Cortex Plug \u{2014} One command, every agent.");
+        println!("  Cortex Plug \u{2014} Connect web cartography tools to your AI agents.");
         println!();
     }
 
@@ -158,11 +158,14 @@ pub async fn run(
                 } else if !quiet {
                     println!("  \u{2713} {:<20} found", probe.name);
                     println!(
-                        "    \u{2192} Injected MCP server into {}",
+                        "    \u{2192} Added 9 Cortex tools to {}",
                         config_path
                             .file_name()
                             .unwrap_or_default()
                             .to_string_lossy()
+                    );
+                    println!(
+                        "    \u{2192} Tools: map, query, pathfind, act, perceive, compare, auth, compile, wql"
                     );
                     if probe.needs_restart {
                         println!("    \u{2192} Restart {} to activate", probe.name);
@@ -210,16 +213,29 @@ pub async fn run(
     } else if !quiet {
         if !list_only && !status_only && !remove {
             println!("  \u{2501}\u{2501}\u{2501}\u{2501}\u{2501}\u{2501}\u{2501}\u{2501}\u{2501}\u{2501}\u{2501}\u{2501}\u{2501}\u{2501}\u{2501}\u{2501}\u{2501}\u{2501}\u{2501}\u{2501}\u{2501}\u{2501}\u{2501}\u{2501}\u{2501}\u{2501}\u{2501}\u{2501}\u{2501}\u{2501}\u{2501}\u{2501}\u{2501}\u{2501}\u{2501}\u{2501}\u{2501}");
-            println!("  {} agent(s) connected. Cortex is ready.", connected);
+            println!(
+                "  \u{2713} {} agent(s) connected. Cortex is ready.",
+                connected
+            );
+            println!();
+            println!("  What happened:");
+            println!("    Your agent(s) now have 9 web cartography tools.");
+            println!("    Cortex maps websites into graphs \u{2014} your agent queries");
+            println!("    them in microseconds instead of browsing page by page.");
             println!();
             if !needs_restart.is_empty() {
                 println!("  Restart to activate: {}", needs_restart.join(", "));
                 println!();
             }
-            println!("  Test it:");
+            println!("  Try it:");
             println!("    Claude:     \"Map amazon.com and find headphones under $300\"");
             println!("    Terminal:   cortex map amazon.com");
             println!("    Python:     from cortex_client import map");
+            println!();
+            println!("  Manage:");
+            println!("    cortex plug --status    See which agents are connected");
+            println!("    cortex plug --remove    Disconnect from all agents");
+            println!("    cortex status           Check if the runtime is running");
             println!();
         } else if remove {
             println!();

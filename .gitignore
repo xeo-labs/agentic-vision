@@ -1,3 +1,4 @@
+# Build artifacts
 target/
 node_modules/
 dist/
@@ -5,13 +6,35 @@ __pycache__/
 *.pyc
 *.egg-info/
 .venv/
+
+# IDE
 .idea/
 .vscode/
 *.swp
+
+# Runtime state
 .cortex/
 /tmp/cortex.sock
+
+# OS
 .DS_Store
 Thumbs.db
+
+# Shared libraries
 *.so
 *.dylib
 *.dll
+
+# AI prompts, planning docs, test specs (internal only)
+.claude/
+docs/planning/
+
+# LaTeX build artifacts (canonical PDF kept in publication/)
+publication/*.aux
+publication/*.log
+publication/*.bbl
+publication/*.blg
+publication/*.out
+publication/*.fls
+publication/*.fdb_latexmk
+publication/*.synctex.gz
