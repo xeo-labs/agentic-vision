@@ -5,6 +5,40 @@ All notable changes to AgenticVision will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.1] - 2026-02-19
+
+Native screenshot and clipboard capture support.
+
+### Added
+
+- **Screenshot capture** (`source.type = "screenshot"`)
+  - macOS: `screencapture -x` with optional `-R x,y,w,h` region
+  - Linux: fallback chain — `gnome-screenshot` → `scrot` → `maim` (full screen); `maim` → `import` (region)
+  - Clear error messages for permission denied (macOS Screen Recording) and missing tools (Linux)
+
+- **Clipboard capture** (`source.type = "clipboard"`)
+  - macOS: AppleScript via `osascript` — tries PNG (`PNGf`) first, falls back to TIFF (`TIFF`) + `sips` conversion (handles `screencapture -c` output)
+  - Linux: `xclip` → `wl-paste` (Wayland) fallback chain
+  - Clear error when clipboard contains no image data
+
+- **New error variant** `VisionError::Capture(String)` for capture-specific failures
+
+- **RAII temp file cleanup** (`TempFileGuard`) ensures temporary files are removed on all code paths
+
+- **Region parameter** in MCP tool schema: `source.region` object with `{ x, y, w, h }` fields for partial-screen capture
+
+- **Refactored session manager** — extracted shared `store_capture()` helper to eliminate code duplication
+
+### Test coverage
+
+- 3 new unit tests (CI-safe — accept `VisionError::Capture` on headless environments)
+- Rust core: 38 tests (was 35)
+- Total across all suites: 91 tests (was 88)
+
+### No new dependencies
+
+Uses `std::process::Command` to invoke platform tools — zero new crate dependencies.
+
 ## [0.1.0] - 2026-02-19
 
 First release. Two crates published to crates.io. 88 tests passing across all suites.
@@ -58,4 +92,5 @@ First release. Two crates published to crates.io. 88 tests passing across all su
 | MCP tool round-trip | 7.2 ms |
 | Storage per capture | ~4.26 KB |
 
+[0.1.1]: https://github.com/xeo-labs/agentic-vision/releases/tag/v0.1.1
 [0.1.0]: https://github.com/xeo-labs/agentic-vision/releases/tag/v0.1.0

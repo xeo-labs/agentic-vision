@@ -165,6 +165,9 @@ pub enum VisionError {
     #[error("Invalid input: {0}")]
     InvalidInput(String),
 
+    #[error("Capture error: {0}")]
+    Capture(String),
+
     #[error("Model not available: {0}")]
     ModelNotAvailable(String),
 }

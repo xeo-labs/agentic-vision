@@ -7,7 +7,10 @@ pub mod similarity;
 pub mod storage;
 pub mod types;
 
-pub use capture::{capture_from_base64, capture_from_file, generate_thumbnail};
+pub use capture::{
+    capture_clipboard, capture_from_base64, capture_from_file, capture_screenshot,
+    generate_thumbnail,
+};
 pub use diff::compute_diff;
 pub use embedding::{EmbeddingEngine, EMBEDDING_DIM};
 pub use similarity::{cosine_similarity, find_similar};

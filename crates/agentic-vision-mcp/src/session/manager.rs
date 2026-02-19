@@ -7,8 +7,8 @@ use image::GenericImageView;
 
 use agentic_vision::{
     capture_from_base64, capture_from_file, compute_diff, cosine_similarity, find_similar,
-    generate_thumbnail, AvisReader, AvisWriter, EmbeddingEngine, ObservationMeta, SimilarityMatch,
-    VisualDiff, VisualMemoryStore, VisualObservation, EMBEDDING_DIM,
+    generate_thumbnail, AvisReader, AvisWriter, CaptureSource, EmbeddingEngine, ObservationMeta,
+    Rect, SimilarityMatch, VisualDiff, VisualMemoryStore, VisualObservation, EMBEDDING_DIM,
 };
 
 use crate::types::{McpError, McpResult};
@@ -103,7 +103,7 @@ impl VisionSessionManager {
         Ok(session_id)
     }
 
-    /// Capture an image from a source.
+    /// Capture an image from a file or base64 source.
     pub fn capture(
         &mut self,
         source_type: &str,
@@ -128,6 +128,44 @@ impl VisionSessionManager {
             }
         };
 
+        self.store_capture(img, source, labels, description)
+    }
+
+    /// Capture a screenshot and store it in visual memory.
+    pub fn capture_screenshot(
+        &mut self,
+        region: Option<Rect>,
+        labels: Vec<String>,
+        description: Option<String>,
+        _extract_ocr: bool,
+    ) -> McpResult<CaptureResult> {
+        let (img, source) = agentic_vision::capture_screenshot(region)
+            .map_err(|e| McpError::VisionError(format!("Screenshot capture failed: {e}")))?;
+
+        self.store_capture(img, source, labels, description)
+    }
+
+    /// Capture an image from the clipboard and store it in visual memory.
+    pub fn capture_clipboard(
+        &mut self,
+        labels: Vec<String>,
+        description: Option<String>,
+        _extract_ocr: bool,
+    ) -> McpResult<CaptureResult> {
+        let (img, source) = agentic_vision::capture_clipboard()
+            .map_err(|e| McpError::VisionError(format!("Clipboard capture failed: {e}")))?;
+
+        self.store_capture(img, source, labels, description)
+    }
+
+    /// Internal: process a captured image and store it as an observation.
+    fn store_capture(
+        &mut self,
+        img: image::DynamicImage,
+        source: CaptureSource,
+        labels: Vec<String>,
+        description: Option<String>,
+    ) -> McpResult<CaptureResult> {
         let (orig_w, orig_h) = img.dimensions();
         let thumbnail = generate_thumbnail(&img);
         let thumb_img = image::load_from_memory(&thumbnail)

@@ -76,7 +76,7 @@ Rust core. CLIP ViT-B/32 via ONNX Runtime. Binary `.avis` format. Real numbers f
 
 ## How It Works
 
-1. **Capture** — `vision_capture` accepts images from files, base64, or URLs. Each image is resized, embedded via CLIP ViT-B/32 into a 512-dimensional vector, compressed to JPEG thumbnail, and stored in the `.avis` binary file.
+1. **Capture** — `vision_capture` accepts images from files, base64, screenshots, or the system clipboard. Each image is resized, embedded via CLIP ViT-B/32 into a 512-dimensional vector, compressed to JPEG thumbnail, and stored in the `.avis` binary file. Screenshots support optional region capture; clipboard reads the current image from the OS clipboard.
 
 2. **Query** — `vision_query` retrieves captures by time range, description, or recency. `vision_similar` finds visually similar captures by cosine similarity. Results include capture metadata, thumbnails, and similarity scores.
 
@@ -95,7 +95,7 @@ Rust core. CLIP ViT-B/32 via ONNX Runtime. Binary `.avis` format. Real numbers f
 
 | Tool | Description |
 |:---|:---|
-| `vision_capture` | Capture and embed an image (file, base64, URL) |
+| `vision_capture` | Capture and embed an image (file, base64, screenshot, clipboard) |
 | `vision_compare` | Side-by-side comparison of two captures |
 | `vision_query` | Query captures by time, description, recency |
 | `vision_ocr` | Extract text from a captured image |
@@ -204,11 +204,11 @@ for m in matches {
 
 | Suite | Tests | Notes |
 |:---|---:|:---|
-| Rust core (`agentic-vision`) | **35** | Unit + integration |
+| Rust core (`agentic-vision`) | **38** | Unit + integration (includes screenshot/clipboard) |
 | Python SDK tests | **47** | Edge cases, format validation |
 | MCP integration (Phase 5) | **3** | Python → Rust stdio transport |
 | Multi-agent (Phase 6) | **3** | Shared file, vision-memory linking, rapid handoff |
-| **Total** | **88** | All passing |
+| **Total** | **91** | All passing |
 
 **Two research papers:**
 - [Paper I: Cortex — Web Cartography (10 pages, 8 figures, 13 tables)](publication/paper-i-cortex/cortex-paper.pdf)

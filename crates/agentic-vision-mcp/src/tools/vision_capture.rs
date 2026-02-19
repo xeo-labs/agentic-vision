@@ -30,6 +30,17 @@ struct SourceParam {
     data: Option<String>,
     #[serde(default)]
     mime: Option<String>,
+    #[serde(default)]
+    region: Option<RegionParam>,
+}
+
+/// Screen region for screenshot captures.
+#[derive(Debug, Deserialize)]
+struct RegionParam {
+    x: u32,
+    y: u32,
+    w: u32,
+    h: u32,
 }
 
 pub fn definition() -> ToolDefinition {
@@ -49,7 +60,18 @@ pub fn definition() -> ToolDefinition {
                         },
                         "path": { "type": "string", "description": "File path (for type=file)" },
                         "data": { "type": "string", "description": "Base64 data (for type=base64)" },
-                        "mime": { "type": "string", "description": "MIME type (for type=base64)" }
+                        "mime": { "type": "string", "description": "MIME type (for type=base64)" },
+                        "region": {
+                            "type": "object",
+                            "description": "Screen region to capture (for type=screenshot). Omit for full screen.",
+                            "properties": {
+                                "x": { "type": "integer", "description": "X coordinate" },
+                                "y": { "type": "integer", "description": "Y coordinate" },
+                                "w": { "type": "integer", "description": "Width" },
+                                "h": { "type": "integer", "description": "Height" }
+                            },
+                            "required": ["x", "y", "w", "h"]
+                        }
                     },
                     "required": ["type"]
                 },
@@ -69,29 +91,58 @@ pub async fn execute(
     let params: CaptureParams =
         serde_json::from_value(args).map_err(|e| McpError::InvalidParams(e.to_string()))?;
 
-    let source_data = match params.source.source_type.as_str() {
-        "file" => params.source.path.as_deref().ok_or_else(|| {
-            McpError::InvalidParams("'path' required for file source".to_string())
-        })?,
-        "base64" => params.source.data.as_deref().ok_or_else(|| {
-            McpError::InvalidParams("'data' required for base64 source".to_string())
-        })?,
+    let mut session = session.lock().await;
+
+    let result = match params.source.source_type.as_str() {
+        "file" => {
+            let path = params.source.path.as_deref().ok_or_else(|| {
+                McpError::InvalidParams("'path' required for file source".to_string())
+            })?;
+            session.capture(
+                "file",
+                path,
+                params.source.mime.as_deref(),
+                params.labels,
+                params.description,
+                params.extract_ocr,
+            )?
+        }
+        "base64" => {
+            let data = params.source.data.as_deref().ok_or_else(|| {
+                McpError::InvalidParams("'data' required for base64 source".to_string())
+            })?;
+            session.capture(
+                "base64",
+                data,
+                params.source.mime.as_deref(),
+                params.labels,
+                params.description,
+                params.extract_ocr,
+            )?
+        }
+        "screenshot" => {
+            let region = params.source.region.map(|r| agentic_vision::Rect {
+                x: r.x,
+                y: r.y,
+                w: r.w,
+                h: r.h,
+            });
+            session.capture_screenshot(
+                region,
+                params.labels,
+                params.description,
+                params.extract_ocr,
+            )?
+        }
+        "clipboard" => {
+            session.capture_clipboard(params.labels, params.description, params.extract_ocr)?
+        }
         other => {
             return Err(McpError::InvalidParams(format!(
-                "Unsupported source type: {other}. Use 'file' or 'base64'."
+                "Unsupported source type: {other}. Use 'file', 'base64', 'screenshot', or 'clipboard'."
             )));
         }
     };
-
-    let mut session = session.lock().await;
-    let result = session.capture(
-        &params.source.source_type,
-        source_data,
-        params.source.mime.as_deref(),
-        params.labels,
-        params.description,
-        params.extract_ocr,
-    )?;
 
     Ok(ToolCallResult::json(&json!({
         "capture_id": result.capture_id,

@@ -59,6 +59,19 @@ Add to `~/.codeium/windsurf/mcp_config.json`:
 
 > **Do not use `/tmp` for vision files** — macOS and Linux clear this directory periodically. Use `~/.vision.avis` for persistent storage.
 
+### CLI Commands
+
+```bash
+# Start MCP server (default)
+agentic-vision-mcp --vision ~/.vision.avis serve
+
+# Validate a vision file
+agentic-vision-mcp --vision ~/.vision.avis validate
+
+# Print server capabilities as JSON
+agentic-vision-mcp info
+```
+
 ### Verify
 
 Once connected, the LLM gains access to tools like `vision_capture`, `vision_query`, `vision_similar`, `vision_compare`, `vision_diff`, and `vision_link`. Test by asking the LLM:
@@ -150,7 +163,7 @@ Without the model, AgenticVision uses a deterministic fallback embedding (suitab
 ### Run tests
 
 ```bash
-# All workspace tests (core + MCP: 35 tests)
+# All workspace tests (core + MCP: 38 tests)
 cargo test --workspace
 
 # Core library only

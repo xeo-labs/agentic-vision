@@ -48,7 +48,7 @@ for m in matches {
 - **Binary `.avis` format** — 64-byte header, JSON payload, JPEG thumbnails. Single file, portable, no database
 - **Similarity search** — Brute-force cosine in 1-2 ms (top-5)
 - **Visual diff** — Pixel-level differencing with 8×8 grid region detection in <1 ms
-- **Image capture** — From files, base64, or URLs. Auto-resize and JPEG compression
+- **Image capture** — From files, base64, screenshots, or clipboard. Auto-resize and JPEG compression. Native screenshot support on macOS (`screencapture`) and Linux (`gnome-screenshot`/`scrot`/`maim`); clipboard capture via `osascript` (macOS) or `xclip`/`wl-paste` (Linux)
 
 ## Performance
 
