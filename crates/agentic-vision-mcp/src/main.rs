@@ -51,6 +51,40 @@ enum Commands {
         log_level: Option<String>,
     },
 
+    /// Start MCP server over HTTP.
+    #[cfg(feature = "sse")]
+    ServeHttp {
+        /// Listen address (host:port).
+        #[arg(long, default_value = "127.0.0.1:3100")]
+        addr: String,
+
+        /// Path to .avis vision file (single-user mode).
+        #[arg(short, long)]
+        vision: Option<String>,
+
+        /// Path to CLIP ONNX model.
+        #[arg(long)]
+        model: Option<String>,
+
+        /// Log level (trace, debug, info, warn, error).
+        #[arg(long)]
+        log_level: Option<String>,
+
+        /// Bearer token for authentication.
+        /// Also reads from AGENTIC_TOKEN env var.
+        #[arg(long)]
+        token: Option<String>,
+
+        /// Enable multi-tenant mode (per-user vision files).
+        #[arg(long)]
+        multi_tenant: bool,
+
+        /// Data directory for multi-tenant vision files.
+        /// Each user gets {data-dir}/{user-id}.avis.
+        #[arg(long)]
+        data_dir: Option<String>,
+    },
+
     /// Validate a .avis vision file.
     Validate,
 
@@ -88,6 +122,56 @@ async fn main() -> anyhow::Result<()> {
             let handler = ProtocolHandler::new(session);
             let transport = StdioTransport::new(handler);
             transport.run().await?;
+        }
+
+        #[cfg(feature = "sse")]
+        Commands::ServeHttp {
+            addr,
+            vision,
+            model,
+            log_level: _,
+            token,
+            multi_tenant,
+            data_dir,
+        } => {
+            use agentic_vision_mcp::transport::sse::{ServerMode, SseTransport};
+            use agentic_vision_mcp::session::tenant::VisionTenantRegistry;
+
+            // Resolve token: CLI flag > env var
+            let effective_token = token.or_else(|| std::env::var("AGENTIC_TOKEN").ok());
+
+            let server_mode = if multi_tenant {
+                let dir = data_dir.unwrap_or_else(|| {
+                    eprintln!("Error: --data-dir is required when using --multi-tenant");
+                    std::process::exit(1);
+                });
+                let dir = std::path::PathBuf::from(&dir);
+                let effective_model = model.or(cli.model);
+                tracing::info!("AgenticVision MCP server (multi-tenant)");
+                tracing::info!("Data dir: {}", dir.display());
+                ServerMode::MultiTenant {
+                    data_dir: dir.clone(),
+                    model_path: effective_model,
+                    registry: Arc::new(Mutex::new(VisionTenantRegistry::new(&dir, None))),
+                }
+            } else {
+                let effective_vision = vision.or(cli.vision);
+                let effective_model = model.or(cli.model);
+                let vision_path = resolve_vision_path(effective_vision.as_deref());
+                tracing::info!("AgenticVision MCP server");
+                tracing::info!("Vision: {vision_path}");
+                let session = VisionSessionManager::open(&vision_path, effective_model.as_deref())?;
+                let session = Arc::new(Mutex::new(session));
+                let handler = ProtocolHandler::new(session);
+                ServerMode::Single(Arc::new(handler))
+            };
+
+            if effective_token.is_some() {
+                tracing::info!("Auth: bearer token required");
+            }
+
+            let transport = SseTransport::with_config(effective_token, server_mode);
+            transport.run(&addr).await?;
         }
 
         Commands::Validate => {

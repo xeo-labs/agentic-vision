@@ -21,6 +21,13 @@ pub mod mcp_error_codes {
     pub const CAPTURE_NOT_FOUND: i32 = -32850;
     pub const SESSION_NOT_FOUND: i32 = -32851;
     pub const VISION_ERROR: i32 = -32852;
+
+    /// Server: Unauthorized (missing or invalid bearer token).
+    pub const UNAUTHORIZED: i32 = -32900;
+    /// Server: User not found (multi-tenant, missing X-User-ID header).
+    pub const USER_NOT_FOUND: i32 = -32901;
+    /// Server: Rate limited.
+    pub const RATE_LIMITED: i32 = -32902;
 }
 
 /// All errors that can occur in the MCP server.
@@ -73,6 +80,14 @@ pub enum McpError {
 
     #[error("JSON error: {0}")]
     Json(#[from] serde_json::Error),
+
+    /// Unauthorized — missing or invalid bearer token.
+    #[error("Unauthorized")]
+    Unauthorized,
+
+    /// User not found — missing X-User-ID header in multi-tenant mode.
+    #[error("User not found: {0}")]
+    UserNotFound(String),
 }
 
 impl McpError {
@@ -95,6 +110,8 @@ impl McpError {
             McpError::VisionError(_) => VISION_ERROR,
             McpError::Transport(_) | McpError::Io(_) => INTERNAL_ERROR,
             McpError::Json(_) => PARSE_ERROR,
+            McpError::Unauthorized => UNAUTHORIZED,
+            McpError::UserNotFound(_) => USER_NOT_FOUND,
         }
     }
 

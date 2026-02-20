@@ -27,6 +27,11 @@ uuid = { version = "1.6", features = ["v4"] }
 chrono = { version = "0.4", features = ["serde"] }
 base64 = "0.22"
 
+# HTTP server for SSE transport (optional feature)
+axum = { version = "0.7", optional = true }
+tower = { version = "0.4", optional = true }
+tower-http = { version = "0.5", features = ["cors"], optional = true }
+
 [dev-dependencies]
 tempfile = "3.9"
 tokio-test = "0.4"
@@ -34,6 +39,8 @@ tokio-test = "0.4"
 [features]
 default = ["stdio"]
 stdio = []
+sse = ["axum", "tower", "tower-http"]
+all-transports = ["stdio", "sse"]
 
 [[bin]]
 name = "agentic-vision-mcp"
