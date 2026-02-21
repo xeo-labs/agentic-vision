@@ -26,6 +26,8 @@ SERVER_KEY="agentic-vision"
 INSTALL_DIR="$HOME/.local/bin"
 VERSION="latest"
 DRY_RUN=false
+CLAUDE_DESKTOP_CONFIGURED=false
+CLAUDE_CODE_CONFIGURED=false
 
 # ── Parse arguments ──────────────────────────────────────────────────
 for arg in "$@"; do
@@ -146,25 +148,21 @@ install_from_source() {
     fi
 
     if [ "$DRY_RUN" = true ]; then
-        echo "  [dry-run] Would run: cargo install --git ${git_url} ${source_ref_text}--locked --force agentic-vision"
         echo "  [dry-run] Would run: cargo install --git ${git_url} ${source_ref_text}--locked --force agentic-vision-mcp"
-        echo "  [dry-run] Would copy from ${cargo_bin}/(agentic-vision,${BINARY_NAME}) to ${INSTALL_DIR}/"
+        echo "  [dry-run] Would copy from ${cargo_bin}/${BINARY_NAME} to ${INSTALL_DIR}/"
         return
     fi
 
     if [ -n "${VERSION:-}" ] && [ "${VERSION}" != "latest" ]; then
-        cargo install --git "${git_url}" --tag "${VERSION}" --locked --force agentic-vision
         cargo install --git "${git_url}" --tag "${VERSION}" --locked --force agentic-vision-mcp
     else
-        cargo install --git "${git_url}" --locked --force agentic-vision
         cargo install --git "${git_url}" --locked --force agentic-vision-mcp
     fi
 
     mkdir -p "${INSTALL_DIR}"
-    cp "${cargo_bin}/agentic-vision" "${INSTALL_DIR}/agentic-vision"
     cp "${cargo_bin}/${BINARY_NAME}" "${INSTALL_DIR}/${BINARY_NAME}"
-    chmod +x "${INSTALL_DIR}/agentic-vision" "${INSTALL_DIR}/${BINARY_NAME}"
-    echo "  Installed from source to ${INSTALL_DIR}/agentic-vision and ${INSTALL_DIR}/${BINARY_NAME}"
+    chmod +x "${INSTALL_DIR}/${BINARY_NAME}"
+    echo "  Installed from source to ${INSTALL_DIR}/${BINARY_NAME}"
 }
 
 # ── Merge MCP server into a config file ───────────────────────────────
@@ -208,6 +206,7 @@ configure_claude_desktop() {
     echo "  Claude Desktop..."
     merge_config "$config_file"
     echo "  Done"
+    CLAUDE_DESKTOP_CONFIGURED=true
 }
 
 # ── Configure Claude Code ────────────────────────────────────────────
@@ -218,7 +217,26 @@ configure_claude_code() {
         echo "  Claude Code..."
         merge_config "$config_file"
         echo "  Done"
+        CLAUDE_CODE_CONFIGURED=true
     fi
+}
+
+print_client_help() {
+    echo ""
+    echo "MCP client summary:"
+    if [ "$CLAUDE_DESKTOP_CONFIGURED" = true ]; then
+        echo "  - Configured: Claude Desktop"
+    fi
+    if [ "$CLAUDE_CODE_CONFIGURED" = true ]; then
+        echo "  - Configured: Claude Code"
+    fi
+    if [ "$CLAUDE_DESKTOP_CONFIGURED" = false ] && [ "$CLAUDE_CODE_CONFIGURED" = false ]; then
+        echo "  - Claude Desktop/Code not detected (auto-config skipped)"
+    fi
+    echo ""
+    echo "For Codex, Cursor, Windsurf, VS Code, Cline, or any MCP client, add:"
+    echo "  command: ${INSTALL_DIR}/${BINARY_NAME}"
+    echo "  args: [\"serve\"]"
 }
 
 # ── Check PATH ────────────────────────────────────────────────────────
@@ -267,9 +285,10 @@ main() {
     echo "Configuring MCP clients..."
     configure_claude_desktop
     configure_claude_code
+    print_client_help
 
     echo ""
-    echo "Done! Restart Claude Desktop / Claude Code to use AgenticVision."
+    echo "Done! Restart any configured MCP client to use AgenticVision."
 
     check_path
 }
