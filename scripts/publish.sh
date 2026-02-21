@@ -17,11 +17,11 @@ echo "3. Running clippy..."
 cargo clippy --workspace -- -D warnings
 echo ""
 
-echo "4. Dry-run publish (core library)..."
+echo "4. Dry-run publish (paired crates: core library)..."
 cargo publish -p agentic-vision --dry-run
 echo ""
 
-echo "5. Dry-run publish (MCP server)..."
+echo "5. Dry-run publish (paired crates: MCP server)..."
 cargo publish -p agentic-vision-mcp --dry-run
 echo ""
 

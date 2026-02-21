@@ -143,6 +143,11 @@ Rust core. CLIP ViT-B/32 via ONNX Runtime. Binary `.avis` format. Real numbers f
 curl -fsSL https://raw.githubusercontent.com/agentralabs/agentic-vision/main/scripts/install.sh | bash
 ```
 
+| Channel | Command | Result |
+|:---|:---|:---|
+| GitHub releases (official) | `curl -fsSL https://raw.githubusercontent.com/agentralabs/agentic-vision/main/scripts/install.sh \| bash` | Installs release binary and merges MCP config |
+| crates.io paired crates (official) | `cargo install agentic-vision agentic-vision-mcp` | Installs core library crate and MCP server binary |
+
 **MCP Server** (for Claude Desktop, VS Code, Cursor, Windsurf):
 ```bash
 cargo install agentic-vision-mcp

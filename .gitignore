@@ -41,6 +41,7 @@ planning-docs/
 docs/planning/
 scripts/claude-session.sh
 .agentra/
+docs/REPO_HYGIENE.md
 
 # Test reports (generated, not source)
 tests/reports/
