@@ -222,7 +222,7 @@ agent.add_skill(cortex_query_skill)
 ### Lite Image (HTTP-only)
 
 ```bash
-docker run -p 7700:7700 cortex-ai/cortex:lite
+docker run -p 7700:7700 agentralabs/agentic-vision:lite
 ```
 
 ~25 MB. No Chromium. Suitable for 93% of sites.
@@ -230,7 +230,7 @@ docker run -p 7700:7700 cortex-ai/cortex:lite
 ### Full Image (with Chromium)
 
 ```bash
-docker run -p 7700:7700 cortex-ai/cortex:full
+docker run -p 7700:7700 agentralabs/agentic-vision:full
 ```
 
 ~350 MB. Includes Chromium for browser fallback.
@@ -241,7 +241,7 @@ docker run -p 7700:7700 cortex-ai/cortex:full
 version: "3.8"
 services:
   cortex:
-    image: cortex-ai/cortex:lite
+    image: agentralabs/agentic-vision:lite
     ports:
       - "7700:7700"
     volumes:

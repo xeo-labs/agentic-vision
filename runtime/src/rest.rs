@@ -151,7 +151,26 @@ fn uuid_simple() -> String {
 // ── Handlers ────────────────────────────────────────────────────
 
 async fn health() -> Json<Value> {
-    Json(serde_json::json!({ "status": "ok" }))
+    let profile = std::env::var("CORTEX_AUTONOMIC_PROFILE")
+        .unwrap_or_else(|_| "desktop".to_string())
+        .trim()
+        .to_ascii_lowercase();
+    let migration_policy = std::env::var("CORTEX_STORAGE_MIGRATION_POLICY")
+        .unwrap_or_else(|_| "auto-safe".to_string())
+        .trim()
+        .to_ascii_lowercase();
+    let ledger_dir = std::env::var("CORTEX_HEALTH_LEDGER_DIR")
+        .ok()
+        .or_else(|| std::env::var("AGENTRA_HEALTH_LEDGER_DIR").ok())
+        .unwrap_or_else(|| "~/.agentra/health-ledger".to_string());
+    Json(serde_json::json!({
+        "status": "ok",
+        "autonomic": {
+            "profile": profile,
+            "migration_policy": migration_policy,
+            "health_ledger_dir": ledger_dir
+        }
+    }))
 }
 
 /// Serve the embedded dashboard HTML.

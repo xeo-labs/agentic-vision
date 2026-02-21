@@ -37,8 +37,10 @@ Thumbs.db
 
 # AI prompts, planning docs, test specs (internal only)
 .claude/
+planning-docs/
 docs/planning/
 scripts/claude-session.sh
+.agentra/
 
 # Test reports (generated, not source)
 tests/reports/

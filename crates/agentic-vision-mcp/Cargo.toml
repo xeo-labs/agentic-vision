@@ -12,7 +12,7 @@ categories = ["development-tools", "multimedia::images"]
 exclude = [".DS_Store"]
 
 [dependencies]
-agentic-vision = { version = "0.1.1", path = "../agentic-vision" }
+agentic-vision = { version = "0.1.2", path = "../agentic-vision" }
 image = "0.25"
 
 serde = { version = "1.0", features = ["derive"] }
@@ -21,6 +21,8 @@ tokio = { version = "1.35", features = ["full"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 clap = { version = "4.4", features = ["derive"] }
+clap_complete = "4"
+rustyline = "14"
 thiserror = "1.0"
 anyhow = "1.0"
 uuid = { version = "1.6", features = ["v4"] }

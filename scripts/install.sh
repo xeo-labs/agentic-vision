@@ -1,97 +1,215 @@
-#!/usr/bin/env bash
-# Copyright 2026 Cortex Contributors
-# SPDX-License-Identifier: Apache-2.0
-#
-# Cortex universal installer.
+#!/bin/bash
+# AgenticVision — one-liner install script
+# Downloads pre-built binary and configures Claude Desktop/Code.
 #
 # Usage:
-#   curl -fsSL https://cortex.dev/install | bash
-#   curl -fsSL https://cortex.dev/install | bash -s -- --full   # with Chromium
+#   curl -fsSL https://raw.githubusercontent.com/agentralabs/agentic-vision/main/scripts/install.sh | bash
 #
-# Environment variables:
-#   CORTEX_INSTALL_DIR  — Override install directory (default: /usr/local/bin)
-#   CORTEX_VERSION      — Pin a specific version (default: latest)
+# Future (when agentralabs.tech is live):
+#   curl -fsSL https://agentralabs.tech/install/vision | sh
+#
+# Options:
+#   --version=X.Y.Z   Pin a specific version (default: latest)
+#   --dir=/path        Override install directory (default: ~/.local/bin)
+#   --dry-run          Print actions without executing
+#
+# What it does:
+#   1. Downloads agentic-vision-mcp binary to ~/.local/bin/
+#   2. MERGES (not overwrites) MCP config into Claude Desktop and Claude Code
+#   3. Leaves all existing MCP servers untouched
+#
+# Requirements: curl, jq
 
 set -euo pipefail
 
-REPO="cortex-ai/cortex"
-INSTALL_DIR="${CORTEX_INSTALL_DIR:-/usr/local/bin}"
-VERSION="${CORTEX_VERSION:-latest}"
-FULL=false
+# ── Constants ──────────────────────────────────────────────────────────
+REPO="agentralabs/agentic-vision"
+BINARY_NAME="agentic-vision-mcp"
+SERVER_KEY="agentic-vision"
+INSTALL_DIR="$HOME/.local/bin"
+VERSION="latest"
+DRY_RUN=false
 
+# ── Parse arguments ──────────────────────────────────────────────────
 for arg in "$@"; do
     case "$arg" in
-        --full) FULL=true ;;
         --version=*) VERSION="${arg#*=}" ;;
-        --dir=*) INSTALL_DIR="${arg#*=}" ;;
+        --dir=*)     INSTALL_DIR="${arg#*=}" ;;
+        --dry-run)   DRY_RUN=true ;;
         --help|-h)
-            echo "Usage: install.sh [--full] [--version=X.Y.Z] [--dir=/path]"
+            echo "Usage: install.sh [--version=X.Y.Z] [--dir=/path] [--dry-run]"
             exit 0
             ;;
     esac
 done
 
-# ── Detect platform ───────────────────────────────────────────────
-OS="$(uname -s)"
-ARCH="$(uname -m)"
+# ── Detect platform ───────────────────────────────────────────────────
+detect_platform() {
+    local os arch
+    os="$(uname -s | tr '[:upper:]' '[:lower:]')"
+    arch="$(uname -m)"
 
-case "$OS" in
-    Linux)   PLATFORM="linux" ;;
-    Darwin)  PLATFORM="darwin" ;;
-    *)       echo "Unsupported OS: $OS" >&2; exit 1 ;;
-esac
+    case "$os" in
+        darwin) os="darwin" ;;
+        linux)  os="linux" ;;
+        *)      echo "Error: Unsupported OS: $os" >&2; exit 1 ;;
+    esac
 
-case "$ARCH" in
-    x86_64|amd64)   ARCH="x86_64" ;;
-    aarch64|arm64)   ARCH="aarch64" ;;
-    *)               echo "Unsupported architecture: $ARCH" >&2; exit 1 ;;
-esac
+    case "$arch" in
+        x86_64|amd64)  arch="x86_64" ;;
+        arm64|aarch64) arch="aarch64" ;;
+        *)             echo "Error: Unsupported architecture: $arch" >&2; exit 1 ;;
+    esac
 
-TRIPLE="${PLATFORM}-${ARCH}"
-echo "Detected platform: ${TRIPLE}"
+    echo "${os}-${arch}"
+}
 
-# ── Resolve version ──────────────────────────────────────────────
-if [ "$VERSION" = "latest" ]; then
-    VERSION="$(curl -fsSL "https://api.github.com/repos/${REPO}/releases/latest" \
-        | grep '"tag_name"' | head -1 | sed 's/.*"v\?\([^"]*\)".*/\1/')"
-fi
-echo "Installing Cortex v${VERSION}"
+# ── Check dependencies ────────────────────────────────────────────────
+check_deps() {
+    for cmd in curl jq; do
+        if ! command -v "$cmd" &>/dev/null; then
+            echo "Error: '$cmd' is required but not installed." >&2
+            if [ "$cmd" = "jq" ]; then
+                echo "  Install: brew install jq  (macOS) or apt install jq (Linux)" >&2
+            fi
+            exit 1
+        fi
+    done
+}
 
-# ── Download binary ──────────────────────────────────────────────
-ASSET="cortex-${VERSION}-${TRIPLE}.tar.gz"
-URL="https://github.com/${REPO}/releases/download/v${VERSION}/${ASSET}"
+# ── Get latest release tag ────────────────────────────────────────────
+get_latest_version() {
+    curl -fsSL "https://api.github.com/repos/${REPO}/releases/latest" \
+        | jq -r '.tag_name'
+}
 
-TMPDIR="$(mktemp -d)"
-trap 'rm -rf "$TMPDIR"' EXIT
+# ── Download and extract binary ──────────────────────────────────────
+download_binary() {
+    local version="$1" platform="$2"
+    local version_num="${version#v}"
+    local asset_name="agentic-vision-mcp-${version_num}-${platform}.tar.gz"
+    local url="https://github.com/${REPO}/releases/download/${version}/${asset_name}"
 
-echo "Downloading ${URL}..."
-curl -fsSL "$URL" -o "${TMPDIR}/${ASSET}"
-tar xzf "${TMPDIR}/${ASSET}" -C "$TMPDIR"
+    echo "Downloading ${BINARY_NAME} ${version} (${platform})..."
 
-# ── Install ──────────────────────────────────────────────────────
-mkdir -p "$INSTALL_DIR"
-cp "${TMPDIR}/cortex" "${INSTALL_DIR}/cortex"
-chmod +x "${INSTALL_DIR}/cortex"
+    if [ "$DRY_RUN" = true ]; then
+        echo "  [dry-run] Would download: ${url}"
+        echo "  [dry-run] Would install to: ${INSTALL_DIR}/${BINARY_NAME}"
+        return
+    fi
 
-echo "Installed cortex to ${INSTALL_DIR}/cortex"
+    local tmpdir
+    tmpdir="$(mktemp -d)"
+    trap 'rm -rf "$tmpdir"' EXIT
 
-# ── Optional: install Chromium ───────────────────────────────────
-if [ "$FULL" = true ]; then
-    echo "Installing Chromium for full Cortex capabilities..."
-    "${INSTALL_DIR}/cortex" doctor --install-chrome
-fi
+    mkdir -p "$INSTALL_DIR"
+    curl -fsSL "$url" -o "${tmpdir}/${asset_name}"
+    tar xzf "${tmpdir}/${asset_name}" -C "$tmpdir"
 
-# ── Verify ───────────────────────────────────────────────────────
-"${INSTALL_DIR}/cortex" --version
+    # Find the binary inside the extracted directory
+    cp "${tmpdir}"/agentic-vision-mcp-*/${BINARY_NAME} "${INSTALL_DIR}/${BINARY_NAME}"
+    chmod +x "${INSTALL_DIR}/${BINARY_NAME}"
+    echo "  Installed to ${INSTALL_DIR}/${BINARY_NAME}"
+}
 
-echo ""
-echo "Cortex installed successfully!"
-echo ""
-echo "Quick start:"
-echo "  cortex start          # Start the Cortex daemon"
-echo "  cortex map example.com  # Map a website"
-echo "  cortex plug           # Auto-configure AI agents"
-echo ""
-if [ "$FULL" = false ]; then
-    echo "Tip: Run with --full to also install Chromium for browser fallback."
-fi
+# ── Merge MCP server into a config file ───────────────────────────────
+# Uses jq to add our server WITHOUT touching other servers.
+merge_config() {
+    local config_file="$1"
+    local config_dir
+    config_dir="$(dirname "$config_file")"
+
+    if [ "$DRY_RUN" = true ]; then
+        echo "    [dry-run] Would merge into: ${config_file}"
+        return
+    fi
+
+    mkdir -p "$config_dir"
+
+    if [ -f "$config_file" ] && [ -s "$config_file" ]; then
+        echo "    Existing config found, merging..."
+        jq --arg key "$SERVER_KEY" \
+           --arg cmd "${INSTALL_DIR}/${BINARY_NAME}" \
+           '.mcpServers //= {} | .mcpServers[$key] = {"command": $cmd, "args": ["serve"]}' \
+           "$config_file" > "$config_file.tmp" && mv "$config_file.tmp" "$config_file"
+    else
+        echo "    Creating new config..."
+        jq -n --arg key "$SERVER_KEY" \
+              --arg cmd "${INSTALL_DIR}/${BINARY_NAME}" \
+           '{ "mcpServers": { ($key): { "command": $cmd, "args": ["serve"] } } }' \
+           > "$config_file"
+    fi
+}
+
+# ── Configure Claude Desktop ─────────────────────────────────────────
+configure_claude_desktop() {
+    local config_file
+    case "$(uname -s)" in
+        Darwin) config_file="$HOME/Library/Application Support/Claude/claude_desktop_config.json" ;;
+        Linux)  config_file="${XDG_CONFIG_HOME:-$HOME/.config}/Claude/claude_desktop_config.json" ;;
+        *)      return ;;
+    esac
+
+    echo "  Claude Desktop..."
+    merge_config "$config_file"
+    echo "  Done"
+}
+
+# ── Configure Claude Code ────────────────────────────────────────────
+configure_claude_code() {
+    local config_file="$HOME/.claude/mcp.json"
+
+    if [ -d "$HOME/.claude" ] || [ -f "$config_file" ]; then
+        echo "  Claude Code..."
+        merge_config "$config_file"
+        echo "  Done"
+    fi
+}
+
+# ── Check PATH ────────────────────────────────────────────────────────
+check_path() {
+    if [[ ":$PATH:" != *":$INSTALL_DIR:"* ]]; then
+        echo ""
+        echo "Note: Add ${INSTALL_DIR} to your PATH if not already:"
+        echo "  export PATH=\"\$HOME/.local/bin:\$PATH\""
+        echo ""
+        echo "Add this line to your ~/.zshrc or ~/.bashrc to make it permanent."
+    fi
+}
+
+# ── Main ──────────────────────────────────────────────────────────────
+main() {
+    echo "AgenticVision Installer"
+    echo "======================"
+    echo ""
+
+    check_deps
+
+    local platform
+    platform="$(detect_platform)"
+    echo "Platform: ${platform}"
+
+    if [ "$VERSION" = "latest" ]; then
+        VERSION="$(get_latest_version)"
+    fi
+    if [ -z "$VERSION" ] || [ "$VERSION" = "null" ]; then
+        echo "Error: Could not determine latest release version." >&2
+        echo "  You can install from source: cargo install agentic-vision-mcp" >&2
+        exit 1
+    fi
+    echo "Version: ${VERSION}"
+
+    download_binary "$VERSION" "$platform"
+
+    echo ""
+    echo "Configuring MCP clients..."
+    configure_claude_desktop
+    configure_claude_code
+
+    echo ""
+    echo "Done! Restart Claude Desktop / Claude Code to use AgenticVision."
+
+    check_path
+}
+
+main "$@"

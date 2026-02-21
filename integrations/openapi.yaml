@@ -10,7 +10,7 @@ info:
     url: https://www.apache.org/licenses/LICENSE-2.0
   contact:
     name: Cortex
-    url: https://github.com/cortex-ai/cortex
+    url: https://github.com/agentralabs/agentic-vision
 
 servers:
   - url: http://localhost:7700

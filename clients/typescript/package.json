@@ -4,13 +4,13 @@
   "description": "Thin TypeScript client for the Cortex web cartography runtime",
   "author": "Cortex Contributors",
   "license": "Apache-2.0",
-  "homepage": "https://cortex.dev",
+  "homepage": "https://agentralabs.tech",
   "repository": {
     "type": "git",
-    "url": "https://github.com/cortex-ai/cortex.git",
+    "url": "https://github.com/agentralabs/agentic-vision.git",
     "directory": "clients/typescript"
   },
-  "bugs": "https://github.com/cortex-ai/cortex/issues",
+  "bugs": "https://github.com/agentralabs/agentic-vision/issues",
   "keywords": ["web", "cartography", "agent", "mcp", "navigation", "cortex"],
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

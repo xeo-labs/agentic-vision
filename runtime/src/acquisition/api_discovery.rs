@@ -198,10 +198,10 @@ mod tests {
     fn test_build_rest_url_github() {
         let url = build_rest_url(
             "https://api.github.com/repos/{owner}/{repo}",
-            "https://github.com/cortex-ai/cortex",
+            "https://github.com/agentralabs/agentic-vision",
             "github.com",
         );
-        assert_eq!(url, "https://api.github.com/repos/cortex-ai/cortex");
+        assert_eq!(url, "https://api.github.com/repos/agentralabs/agentic-vision");
     }
 
     #[test]

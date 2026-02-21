@@ -1,6 +1,6 @@
 # @cortex/mcp-server
 
-[Model Context Protocol](https://modelcontextprotocol.io/) server for [Cortex](https://github.com/cortex-ai/cortex) — gives AI agents web cartography superpowers.
+[Model Context Protocol](https://modelcontextprotocol.io/) server for [Cortex](https://github.com/agentralabs/agentic-vision) — gives AI agents web cartography superpowers.
 
 ## What This Does
 

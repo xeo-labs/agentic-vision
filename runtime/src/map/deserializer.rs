@@ -46,8 +46,15 @@ impl SiteMap {
         }
 
         let format_version = r.read_u16::<LittleEndian>().context("reading version")?;
-        if format_version != FORMAT_VERSION {
-            bail!("unsupported format version: expected {FORMAT_VERSION}, got {format_version}");
+        if format_version > FORMAT_VERSION {
+            bail!("unsupported format version: expected <= {FORMAT_VERSION}, got {format_version}");
+        }
+        if format_version < FORMAT_VERSION {
+            tracing::info!(
+                "Loading legacy map format v{}; upgrading to v{} in-memory",
+                format_version,
+                FORMAT_VERSION
+            );
         }
 
         let domain_length = r
@@ -193,7 +200,7 @@ impl SiteMap {
 
         let header = MapHeader {
             magic,
-            format_version,
+            format_version: FORMAT_VERSION,
             domain,
             mapped_at,
             node_count: node_count as u32,

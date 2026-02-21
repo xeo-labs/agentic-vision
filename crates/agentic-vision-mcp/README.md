@@ -90,7 +90,7 @@ Add to `~/.codeium/windsurf/mcp_config.json`:
 1. **Capture** — `vision_capture` accepts images from files, base64, screenshots, or the system clipboard. Embeds with CLIP ViT-B/32, stores in `.avis` binary format. Screenshots support optional region capture on macOS and Linux.
 2. **Query** — `vision_query` retrieves by time, description, or recency. `vision_similar` finds visually similar captures by cosine similarity.
 3. **Compare** — `vision_compare` for side-by-side LLM analysis. `vision_diff` for pixel-level differencing with 8×8 grid region detection.
-4. **Link** — `vision_link` connects captures to [AgenticMemory](https://github.com/xeo-labs/agentic-memory) cognitive graph nodes.
+4. **Link** — `vision_link` connects captures to [AgenticMemory](https://github.com/agentralabs/agentic-memory) cognitive graph nodes.
 
 ## CLI Commands
 
@@ -142,9 +142,9 @@ This server implements MCP (Model Context Protocol) spec version **2024-11-05** 
 
 ## Links
 
-- [GitHub](https://github.com/xeo-labs/agentic-vision)
+- [GitHub](https://github.com/agentralabs/agentic-vision)
 - [Core Library](https://crates.io/crates/agentic-vision)
-- [AgenticMemory](https://github.com/xeo-labs/agentic-memory) — Persistent cognitive memory for AI agents
+- [AgenticMemory](https://github.com/agentralabs/agentic-memory) — Persistent cognitive memory for AI agents
 
 ## License
 

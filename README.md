@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/logo.svg" alt="AgenticVision" width="320">
+  <img src="assets/github-hero-pane.svg" alt="AgenticVision hero pane" width="980">
 </p>
 
 <p align="center">
@@ -12,6 +12,10 @@
 <p align="center">
   <a href="#quickstart">Quickstart</a> · <a href="#why-agenticvision">Why</a> · <a href="#benchmarks">Benchmarks</a> · <a href="#how-it-works">How It Works</a> · <a href="#install">Install</a> · <a href="INSTALL.md">Full Install Guide</a> · <a href="publication/paper-ii-agentic-vision-mcp/agentic-vision-mcp-paper.pdf">Paper</a>
 </p>
+
+> **Standalone guarantee:** AgenticVision is independently installable and operable. Integration with AgenticMemory/AgenticCodebase is optional, never required.
+>
+> **Autonomic defaults (phase 4):** daemon mode supports profile-driven maintenance (`CORTEX_AUTONOMIC_PROFILE` = `desktop|cloud|aggressive`), periodic cache/registry hygiene, policy-gated cache migration (`CORTEX_STORAGE_MIGRATION_POLICY` = `auto-safe|strict|off`), SLA-aware GC throttling (`CORTEX_SLA_MAX_CACHE_ENTRIES_BEFORE_GC_THROTTLE`), and health-ledger snapshots (`CORTEX_HEALTH_LEDGER_DIR` or `AGENTRA_HEALTH_LEDGER_DIR`) with safe defaults. Default ledger location is `~/.agentra/health-ledger`. Optional tuning: `CORTEX_MAINTENANCE_TICK_SECS`, `CORTEX_REGISTRY_GC_EVERY_TICKS`, `CORTEX_REGISTRY_GC_KEEP_DELTAS`, `CORTEX_HEALTH_LEDGER_EMIT_SECS`.
 
 ---
 
@@ -28,6 +32,10 @@ cargo install agentic-vision-mcp
 ```
 
 One binary. 10 MCP tools. Persistent `.avis` files. Works with Claude Desktop, VS Code, Cursor, Windsurf, and any MCP-compatible client.
+
+<p align="center">
+  <img src="assets/github-terminal-pane.svg" alt="AgenticVision terminal pane" width="980">
+</p>
 
 ---
 
@@ -68,7 +76,7 @@ Rust core. CLIP ViT-B/32 via ONNX Runtime. Binary `.avis` format. Real numbers f
 
 **Works with every MCP client.** AgenticVision-MCP exposes 10 tools, 6 resources, and 4 prompts via the Model Context Protocol. Any LLM that speaks MCP gains visual memory automatically.
 
-**Links to AgenticMemory.** The `vision_link` tool connects visual captures to [AgenticMemory](https://github.com/xeo-labs/agentic-memory) cognitive graph nodes — bridging what an agent *sees* with what it *knows*.
+**Links to AgenticMemory.** The `vision_link` tool connects visual captures to [AgenticMemory](https://github.com/agentralabs/agentic-memory) cognitive graph nodes — bridging what an agent *sees* with what it *knows*.
 
 ---
 
@@ -273,7 +281,7 @@ Configure Claude Desktop (`~/Library/Application Support/Claude/claude_desktop_c
 
 ## Roadmap: v0.2.0 — Remote Server Support
 
-The next release adds HTTP/SSE transport for remote deployments. Track progress in [#2](https://github.com/xeo-labs/agentic-vision/issues/2).
+The next release adds HTTP/SSE transport for remote deployments. Track progress in [#2](https://github.com/agentralabs/agentic-vision/issues/2).
 
 | Feature | Status |
 |:---|:---|
@@ -307,7 +315,7 @@ agentic-vision-mcp serve-http \
 
 See [CONTRIBUTING.md](CONTRIBUTING.md). The fastest ways to help:
 
-1. **Try it** and [file issues](https://github.com/xeo-labs/agentic-vision/issues)
+1. **Try it** and [file issues](https://github.com/agentralabs/agentic-vision/issues)
 2. **Add an MCP tool** — extend the visual memory surface
 3. **Write an example** — show a real use case
 4. **Improve docs** — every clarification helps someone
@@ -315,5 +323,5 @@ See [CONTRIBUTING.md](CONTRIBUTING.md). The fastest ways to help:
 ---
 
 <p align="center">
-  <sub>Built by <a href="https://github.com/xeo-labs"><strong>Xeo Labs</strong></a></sub>
+  <sub>Built by <a href="https://github.com/agentralabs"><strong>Agentra Labs</strong></a></sub>
 </p>

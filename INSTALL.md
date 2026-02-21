@@ -112,7 +112,7 @@ println!("Captures: {}", store.count());
 
 ## 3. Combined with AgenticMemory
 
-AgenticVision links to [AgenticMemory](https://github.com/xeo-labs/agentic-memory) for full cognitive + visual agent memory. Run both MCP servers:
+AgenticVision links to [AgenticMemory](https://github.com/agentralabs/agentic-memory) for full cognitive + visual agent memory. Run both MCP servers:
 
 ```json
 {
@@ -135,7 +135,7 @@ The `vision_link` tool bridges captures to memory nodes. An agent can associate 
 
 ## 4. Remote Server (coming in v0.2.0)
 
-> **Preview** — these features are under development. Track progress in [#2](https://github.com/xeo-labs/agentic-vision/issues/2).
+> **Preview** — these features are under development. Track progress in [#2](https://github.com/agentralabs/agentic-vision/issues/2).
 
 ```bash
 # Remote single-user
@@ -151,14 +151,14 @@ agentic-vision-mcp serve-http \
   --token "secret123"
 ```
 
-Docker compose with Caddy reverse proxy will also be available. See the [v0.2.0 roadmap](https://github.com/xeo-labs/agentic-vision/issues/2) for details.
+Docker compose with Caddy reverse proxy will also be available. See the [v0.2.0 roadmap](https://github.com/agentralabs/agentic-vision/issues/2) for details.
 
 ---
 
 ## Build from Source
 
 ```bash
-git clone https://github.com/xeo-labs/agentic-vision.git
+git clone https://github.com/agentralabs/agentic-vision.git
 cd agentic-vision
 
 # Build entire workspace (core library + MCP server)

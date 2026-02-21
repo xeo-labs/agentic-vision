@@ -1,6 +1,6 @@
 # cortex-agent
 
-Thin Python client for [Cortex](https://github.com/cortex-ai/cortex) — the rapid web cartographer for AI agents.
+Thin Python client for [Cortex](https://github.com/agentralabs/agentic-vision) — the rapid web cartographer for AI agents.
 
 ## Install
 

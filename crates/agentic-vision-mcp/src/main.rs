@@ -3,7 +3,8 @@
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
-use clap::{Parser, Subcommand};
+use clap::{CommandFactory, Parser, Subcommand};
+use clap_complete::Shell;
 
 use agentic_vision_mcp::config::resolve_vision_path;
 use agentic_vision_mcp::protocol::ProtocolHandler;
@@ -90,6 +91,19 @@ enum Commands {
 
     /// Print server capabilities as JSON.
     Info,
+
+    /// Generate shell completion scripts.
+    ///
+    /// Examples:
+    ///   agentic-vision-mcp completions bash > ~/.local/share/bash-completion/completions/agentic-vision-mcp
+    ///   agentic-vision-mcp completions zsh > ~/.zfunc/_agentic-vision-mcp
+    Completions {
+        /// Shell type (bash, zsh, fish, powershell, elvish).
+        shell: Shell,
+    },
+
+    /// Launch interactive REPL mode.
+    Repl,
 }
 
 #[tokio::main]
@@ -202,6 +216,20 @@ async fn main() -> anyhow::Result<()> {
                 "tool_count": tools.len(),
             });
             println!("{}", serde_json::to_string_pretty(&info)?);
+        }
+
+        Commands::Completions { shell } => {
+            let mut cmd = Cli::command();
+            clap_complete::generate(
+                shell,
+                &mut cmd,
+                "agentic-vision-mcp",
+                &mut std::io::stdout(),
+            );
+        }
+
+        Commands::Repl => {
+            agentic_vision_mcp::repl::run()?;
         }
     }
 

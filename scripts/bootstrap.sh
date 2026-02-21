@@ -95,7 +95,7 @@ version = "0.1.0"
 edition = "2021"
 license = "Apache-2.0"
 description = "Rapid web cartographer for AI agents"
-repository = "https://github.com/cortex-ai/cortex"
+repository = "https://github.com/agentralabs/agentic-vision"
 
 [[bin]]
 name = "cortex"
@@ -230,7 +230,7 @@ EOF
 cat > clients/python/README.md << 'EOF'
 # cortex-client
 
-Thin Python client for [Cortex](https://github.com/cortex-ai/cortex) — the rapid web cartographer for AI agents.
+Thin Python client for [Cortex](https://github.com/agentralabs/agentic-vision) — the rapid web cartographer for AI agents.
 
 ```python
 from cortex_client import map

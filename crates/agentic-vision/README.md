@@ -65,9 +65,9 @@ For LLM integration via the Model Context Protocol, see [agentic-vision-mcp](htt
 
 ## Links
 
-- [GitHub](https://github.com/xeo-labs/agentic-vision)
+- [GitHub](https://github.com/agentralabs/agentic-vision)
 - [MCP Server](https://crates.io/crates/agentic-vision-mcp)
-- [AgenticMemory](https://github.com/xeo-labs/agentic-memory) — Persistent cognitive memory for AI agents
+- [AgenticMemory](https://github.com/agentralabs/agentic-memory) — Persistent cognitive memory for AI agents
 
 ## License
 

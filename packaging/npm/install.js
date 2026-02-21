@@ -15,7 +15,7 @@ const path = require("path");
 const { createWriteStream } = require("fs");
 
 const VERSION = require("./package.json").version;
-const REPO = "cortex-ai/cortex";
+const REPO = "agentralabs/agentic-vision";
 
 function getPlatform() {
   const platform = os.platform();

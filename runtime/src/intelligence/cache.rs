@@ -5,8 +5,8 @@
 //! When the cache exceeds `max_entries`, the least-recently-accessed entry
 //! is evicted (both from the index and from disk).
 
-use crate::map::types::SiteMap;
-use anyhow::{Context, Result};
+use crate::map::types::{SiteMap, FORMAT_VERSION};
+use anyhow::{bail, Context, Result};
 use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -14,6 +14,24 @@ use std::time::{Duration, Instant, SystemTime};
 
 /// Default maximum number of cached maps before LRU eviction.
 const DEFAULT_MAX_ENTRIES: usize = 50;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum StorageMigrationPolicy {
+    AutoSafe,
+    Strict,
+    Off,
+}
+
+impl StorageMigrationPolicy {
+    fn from_env(name: &str) -> Self {
+        let raw = std::env::var(name).unwrap_or_else(|_| "auto-safe".to_string());
+        match raw.trim().to_ascii_lowercase().as_str() {
+            "strict" => Self::Strict,
+            "off" | "disabled" | "none" => Self::Off,
+            _ => Self::AutoSafe,
+        }
+    }
+}
 
 /// Cache entry with metadata.
 struct CacheEntry {
@@ -171,9 +189,48 @@ impl MapCache {
 
         let data = fs::read(path)
             .with_context(|| format!("failed to read cached map: {}", path.display()))?;
+        let legacy_version = detect_ctx_format_version(&data).filter(|v| *v < FORMAT_VERSION);
+        let migration_policy = StorageMigrationPolicy::from_env("CORTEX_STORAGE_MIGRATION_POLICY");
+
+        if let Some(version) = legacy_version {
+            if migration_policy == StorageMigrationPolicy::Strict {
+                bail!(
+                    "legacy cache map v{} for {} blocked by strict migration policy",
+                    version,
+                    domain
+                );
+            }
+        }
 
         let map = SiteMap::deserialize(&data)
             .with_context(|| format!("failed to deserialize cached map for {}", domain))?;
+
+        if let Some(version) = legacy_version {
+            match migration_policy {
+                StorageMigrationPolicy::AutoSafe => {
+                    self.cache_map(domain, &map).with_context(|| {
+                        format!(
+                            "failed to rewrite migrated cached map for {} from v{} to v{}",
+                            domain, version, FORMAT_VERSION
+                        )
+                    })?;
+                    tracing::info!(
+                        "Migrated cached map for {} from v{} to v{}",
+                        domain,
+                        version,
+                        FORMAT_VERSION
+                    );
+                }
+                StorageMigrationPolicy::Off => {
+                    tracing::warn!(
+                        "Legacy cached map v{} loaded for {} with migration disabled",
+                        version,
+                        domain
+                    );
+                }
+                StorageMigrationPolicy::Strict => {}
+            }
+        }
 
         Ok(Some(map))
     }
@@ -260,6 +317,14 @@ impl MapCache {
     pub fn cache_dir(&self) -> &Path {
         &self.cache_dir
     }
+}
+
+fn detect_ctx_format_version(data: &[u8]) -> Option<u16> {
+    if data.len() < 6 {
+        return None;
+    }
+    // bytes 0..4 = magic, bytes 4..6 = format_version (little endian)
+    Some(u16::from_le_bytes([data[4], data[5]]))
 }
 
 #[cfg(test)]

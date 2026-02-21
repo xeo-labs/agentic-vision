@@ -18,7 +18,7 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/cortex-ai/cortex"
+Homepage = "https://github.com/agentralabs/agentic-vision"
 
 [tool.setuptools.packages.find]
 include = ["cortex_crewai*"]

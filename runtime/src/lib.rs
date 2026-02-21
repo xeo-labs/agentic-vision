@@ -22,6 +22,7 @@ pub mod events;
 pub mod extraction;
 pub mod intelligence;
 pub mod live;
+pub mod maintenance;
 pub mod map;
 pub mod navigation;
 pub mod pool;

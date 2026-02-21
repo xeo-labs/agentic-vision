@@ -35,7 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **New error codes**
   - `UNAUTHORIZED (-32803)`, `USER_NOT_FOUND (-32804)`, `RATE_LIMITED (-32805)`
 
-Tracking: [#2](https://github.com/xeo-labs/agentic-vision/issues/2)
+Tracking: [#2](https://github.com/agentralabs/agentic-vision/issues/2)
 
 ## [0.1.1] - 2026-02-19
 
@@ -124,5 +124,5 @@ First release. Two crates published to crates.io. 88 tests passing across all su
 | MCP tool round-trip | 7.2 ms |
 | Storage per capture | ~4.26 KB |
 
-[0.1.1]: https://github.com/xeo-labs/agentic-vision/releases/tag/v0.1.1
-[0.1.0]: https://github.com/xeo-labs/agentic-vision/releases/tag/v0.1.0
+[0.1.1]: https://github.com/agentralabs/agentic-vision/releases/tag/v0.1.1
+[0.1.0]: https://github.com/agentralabs/agentic-vision/releases/tag/v0.1.0

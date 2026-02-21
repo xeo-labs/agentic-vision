@@ -3,6 +3,7 @@
 pub mod config;
 pub mod prompts;
 pub mod protocol;
+pub mod repl;
 pub mod resources;
 pub mod session;
 pub mod tools;

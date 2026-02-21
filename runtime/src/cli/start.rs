@@ -3,6 +3,7 @@
 use crate::cartography::mapper::Mapper;
 use crate::cli::output::{self, Styled};
 use crate::extraction::loader::ExtractionLoader;
+use crate::maintenance;
 use crate::renderer::chromium::ChromiumRenderer;
 use crate::renderer::{NoopRenderer, Renderer};
 use crate::server::Server;
@@ -143,6 +144,7 @@ async fn run_inner(http_port: Option<u16>) -> Result<()> {
     };
 
     let shutdown = server.shutdown_handle();
+    let _maintenance_task = maintenance::spawn(shutdown.clone());
 
     // Set up SIGTERM/SIGINT handling
     let shutdown_signal = shutdown.clone();

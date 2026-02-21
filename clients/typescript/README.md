@@ -1,6 +1,6 @@
 # cortex-web-client
 
-Thin TypeScript client for [Cortex](https://github.com/cortex-ai/cortex) — the rapid web cartographer for AI agents.
+Thin TypeScript client for [Cortex](https://github.com/agentralabs/agentic-vision) — the rapid web cartographer for AI agents.
 
 ## Install
 

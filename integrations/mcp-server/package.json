@@ -5,13 +5,13 @@
   "author": "Cortex Contributors",
   "type": "module",
   "license": "Apache-2.0",
-  "homepage": "https://cortex.dev",
+  "homepage": "https://agentralabs.tech",
   "repository": {
     "type": "git",
-    "url": "https://github.com/cortex-ai/cortex.git",
+    "url": "https://github.com/agentralabs/agentic-vision.git",
     "directory": "integrations/mcp-server"
   },
-  "bugs": "https://github.com/cortex-ai/cortex/issues",
+  "bugs": "https://github.com/agentralabs/agentic-vision/issues",
   "keywords": ["mcp", "cortex", "ai", "agent", "web", "cartography"],
   "bin": {
     "cortex-mcp-server": "./dist/index.js"
