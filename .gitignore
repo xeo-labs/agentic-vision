@@ -38,8 +38,6 @@ Thumbs.db
 # AI prompts, planning docs, test specs (internal only)
 .claude/
 planning-docs/
-docs/planning/
-docs/internal/
 scripts/claude-session.sh
 .agentra/
 docs/REPO_HYGIENE.md
