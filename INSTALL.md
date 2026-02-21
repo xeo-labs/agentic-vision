@@ -6,7 +6,7 @@
 curl -fsSL https://raw.githubusercontent.com/agentralabs/agentic-vision/main/scripts/install.sh | bash
 ```
 
-Downloads a pre-built `agentic-vision-mcp` binary, installs to `~/.local/bin/`, and merges MCP server config into Claude Desktop and Claude Code. Vision defaults to `~/.vision.avis`. Requires `curl` and `jq`.
+Downloads release binaries, installs to `~/.local/bin/`, and merges MCP server config into Claude Desktop and Claude Code. Vision defaults to `~/.vision.avis`. Requires `curl` and `jq`.
 
 ---
 

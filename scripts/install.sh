@@ -14,7 +14,7 @@
 #   --dry-run          Print actions without executing
 #
 # What it does:
-#   1. Downloads agentic-vision-mcp binary to ~/.local/bin/
+#   1. Downloads release binaries to ~/.local/bin/
 #   2. MERGES (not overwrites) MCP config into Claude Desktop and Claude Code
 #   3. Leaves all existing MCP servers untouched
 #
@@ -87,13 +87,15 @@ get_latest_version() {
 download_binary() {
     local version="$1" platform="$2"
     local version_num="${version#v}"
-    local asset_name="agentic-vision-mcp-${version_num}-${platform}.tar.gz"
-    local url="https://github.com/${REPO}/releases/download/${version}/${asset_name}"
+    local asset_name_new="agentic-vision-${version_num}-${platform}.tar.gz"
+    local asset_name_legacy="agentic-vision-mcp-${version_num}-${platform}.tar.gz"
+    local url_new="https://github.com/${REPO}/releases/download/${version}/${asset_name_new}"
+    local url_legacy="https://github.com/${REPO}/releases/download/${version}/${asset_name_legacy}"
 
     echo "Downloading ${BINARY_NAME} ${version} (${platform})..."
 
     if [ "$DRY_RUN" = true ]; then
-        echo "  [dry-run] Would download: ${url}"
+        echo "  [dry-run] Would download: ${url_new} (fallback: ${url_legacy})"
         echo "  [dry-run] Would install to: ${INSTALL_DIR}/${BINARY_NAME}"
         return
     fi
@@ -103,11 +105,19 @@ download_binary() {
     trap 'rm -rf "$tmpdir"' EXIT
 
     mkdir -p "$INSTALL_DIR"
-    curl -fsSL "$url" -o "${tmpdir}/${asset_name}"
-    tar xzf "${tmpdir}/${asset_name}" -C "$tmpdir"
+    if curl -fsSL "$url_new" -o "${tmpdir}/${asset_name_new}"; then
+        tar xzf "${tmpdir}/${asset_name_new}" -C "$tmpdir"
+    else
+        echo "  New asset format unavailable, trying legacy artifact..."
+        curl -fsSL "$url_legacy" -o "${tmpdir}/${asset_name_legacy}"
+        tar xzf "${tmpdir}/${asset_name_legacy}" -C "$tmpdir"
+    fi
 
-    # Find the binary inside the extracted directory
-    cp "${tmpdir}"/agentic-vision-mcp-*/${BINARY_NAME} "${INSTALL_DIR}/${BINARY_NAME}"
+    # Copy binaries from either current or legacy release layout.
+    cp "${tmpdir}"/agentic-vision-*/agentic-vision "${INSTALL_DIR}/agentic-vision" 2>/dev/null || true
+    cp "${tmpdir}"/agentic-vision-*/${BINARY_NAME} "${INSTALL_DIR}/${BINARY_NAME}" 2>/dev/null \
+      || cp "${tmpdir}"/agentic-vision-mcp-*/${BINARY_NAME} "${INSTALL_DIR}/${BINARY_NAME}"
+    chmod +x "${INSTALL_DIR}/agentic-vision" 2>/dev/null || true
     chmod +x "${INSTALL_DIR}/${BINARY_NAME}"
     echo "  Installed to ${INSTALL_DIR}/${BINARY_NAME}"
 }

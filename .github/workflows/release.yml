@@ -49,20 +49,23 @@ jobs:
           CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: aarch64-linux-gnu-gcc
 
       - name: Strip binary
-        run: strip target/${{ matrix.target }}/release/agentic-vision-mcp || true
+        run: |
+          strip target/${{ matrix.target }}/release/agentic-vision-mcp || true
+          strip target/${{ matrix.target }}/release/agentic-vision || true
 
       - name: Package
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
-          ASSET="agentic-vision-mcp-${VERSION}-${{ matrix.triple }}"
+          ASSET="agentic-vision-${VERSION}-${{ matrix.triple }}"
           mkdir -p "${ASSET}"
+          cp target/${{ matrix.target }}/release/agentic-vision "${ASSET}/" || true
           cp target/${{ matrix.target }}/release/agentic-vision-mcp "${ASSET}/"
           tar czf "${ASSET}.tar.gz" "${ASSET}"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: agentic-vision-mcp-${{ matrix.triple }}
+          name: agentic-vision-${{ matrix.triple }}
           path: "*.tar.gz"
 
   release:
