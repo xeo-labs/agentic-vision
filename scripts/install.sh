@@ -138,16 +138,11 @@ install_from_source() {
         exit 1
     fi
 
-    local source_ref=()
-    if [ -n "${VERSION:-}" ] && [ "${VERSION}" != "latest" ]; then
-        source_ref=(--tag "${VERSION}")
-    fi
-
     local git_url="https://github.com/${REPO}.git"
     local cargo_bin="${CARGO_HOME:-$HOME/.cargo}/bin"
     local source_ref_text=""
-    if [ "${#source_ref[@]}" -gt 0 ]; then
-        source_ref_text="${source_ref[*]} "
+    if [ -n "${VERSION:-}" ] && [ "${VERSION}" != "latest" ]; then
+        source_ref_text="--tag ${VERSION} "
     fi
 
     if [ "$DRY_RUN" = true ]; then
@@ -157,8 +152,13 @@ install_from_source() {
         return
     fi
 
-    cargo install --git "${git_url}" "${source_ref[@]}" --locked --force agentic-vision
-    cargo install --git "${git_url}" "${source_ref[@]}" --locked --force agentic-vision-mcp
+    if [ -n "${VERSION:-}" ] && [ "${VERSION}" != "latest" ]; then
+        cargo install --git "${git_url}" --tag "${VERSION}" --locked --force agentic-vision
+        cargo install --git "${git_url}" --tag "${VERSION}" --locked --force agentic-vision-mcp
+    else
+        cargo install --git "${git_url}" --locked --force agentic-vision
+        cargo install --git "${git_url}" --locked --force agentic-vision-mcp
+    fi
 
     mkdir -p "${INSTALL_DIR}"
     cp "${cargo_bin}/agentic-vision" "${INSTALL_DIR}/agentic-vision"
