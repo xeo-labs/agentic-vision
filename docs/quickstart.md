@@ -1,22 +1,17 @@
 # Quickstart — From Zero to Typed API in 5 Minutes
 
-## 1. Install the Runtime
+## 1. Install AgenticVision
 
-```bash
-cargo install cortex-runtime
-```
-
-Or use the one-liner:
+Use the one-liner installer (recommended):
 ```bash
 curl -fsSL https://agentralabs.tech/install/vision | bash
 ```
 
-Verify:
+Or install MCP + library manually:
 ```bash
-cortex doctor
+cargo install agentic-vision-mcp
+cargo add agentic-vision
 ```
-
-> No other setup needed. The daemon starts automatically on first use. Chromium is downloaded on-demand only if needed (93% of sites don't need it).
 
 ## 2. Map Your First Site
 

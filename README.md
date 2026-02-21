@@ -149,8 +149,8 @@ curl -fsSL https://agentralabs.tech/install/vision | bash
 
 | Channel | Command | Result |
 |:---|:---|:---|
-| GitHub releases (official) | `curl -fsSL https://agentralabs.tech/install/vision \| bash` | Installs release binaries and merges MCP config |
-| crates.io paired crates (official) | `cargo install agentic-vision agentic-vision-mcp` | Installs core library crate and MCP server binary |
+| GitHub installer (official) | `curl -fsSL https://agentralabs.tech/install/vision \| bash` | Installs release binaries when available, otherwise source fallback; merges MCP config |
+| crates.io + Cargo deps (official) | `cargo install agentic-vision-mcp` + `cargo add agentic-vision` | Installs MCP server binary and adds the core library crate to your project |
 
 **MCP Server** (for Claude Desktop, VS Code, Cursor, Windsurf):
 ```bash
@@ -159,7 +159,7 @@ cargo install agentic-vision-mcp
 
 **Core library** (for Rust projects):
 ```bash
-cargo install agentic-vision
+cargo add agentic-vision
 ```
 
 **Configure Claude Desktop** (`~/Library/Application Support/Claude/claude_desktop_config.json`):
