@@ -317,6 +317,8 @@ Configure Claude Desktop (`~/Library/Application Support/Claude/claude_desktop_c
 }
 ```
 
+`agentic-vision-mcp` supports both line-delimited JSON-RPC and `Content-Length` framed MCP stdio messages.
+
 ---
 
 ## Roadmap: v0.2.0 — Remote Server Support
